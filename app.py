@@ -117,7 +117,6 @@ df = load_data()
 # 3. HELPER FUNCTIONS
 # -----------------------------------------------------------------------------
 def format_val(item, col, unit=""):
-    """Formats values with standard error (e.g., 10.5 ± 0.2 g)"""
     val = item.get(col, 0)
     err = item.get(f"{col}_e", 0)
     
@@ -132,7 +131,6 @@ def format_val(item, col, unit=""):
     return f"{val_str} {unit}".strip()
 
 def format_sum_val(item, cols, unit=""):
-    """Calculates sum of values and propagates error using root-sum-square"""
     val = sum(item.get(c, 0) for c in cols)
     err = math.sqrt(sum(item.get(f"{c}_e", 0)**2 for c in cols))
     
@@ -197,7 +195,11 @@ if not df.empty:
         
         st.markdown("---")
 
-        tabs = st.tabs(["🍽️ Proximates & Fibre", "💎 Minerals", "💊 Vitamins", "💧 Fats", "🧬 Amino Acids", "🌿 Bioactives", "🥕 Carotenoids"])
+        tabs = st.tabs([
+            "🍽️ Proximates & Fibre", "💎 Minerals", "💧 Water Soluble Vits", 
+            "🛢️ Fat Soluble Vits", "🥑 Fats & Lipids", "🧬 Amino Acids", 
+            "🌿 Bioactives", "🥕 Carotenoids"
+        ])
 
         # --- TAB 1: PROXIMATES & FIBRE ---
         with tabs[0]:
@@ -283,32 +285,64 @@ if not df.empty:
                 fig_trace.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font), height=550)
                 st.plotly_chart(fig_trace, use_container_width=True)
 
-        # --- TAB 3: VITAMINS ---
+        # --- TAB 3: WATER SOLUBLE VITAMINS ---
         with tabs[2]:
             st.write("")
-            c1, c2 = st.columns(2)
+            c1, c2 = st.columns([1, 1])
             with c1:
-                st.markdown("#### Water Soluble")
-                st.metric("Vitamin C", format_val(item, 'vitc', 'mg'))
+                st.markdown("#### Vitamin C & Others")
+                st.metric("Total Vitamin C", format_val(item, 'vitc', 'mg'))
                 st.metric("Total Folates", format_val(item, 'folsum', 'µg'))
+                st.metric("Biotin (B7)", format_val(item, 'biot', 'µg'))
                 
-                b_vits = {
-                    "Thiamin (B1)": 'thia', "Riboflavin (B2)": 'ribf', 
-                    "Niacin (B3)": 'nia', "Pantothenic (B5)": 'pantac',
-                    "Vitamin B6": 'vitb6c'
-                }
-                b_vit_data = [{"Vitamin": k, "Value (mg)": format_val(item, v, "")} for k, v in b_vits.items()]
-                st.dataframe(pd.DataFrame(b_vit_data), hide_index=True, use_container_width=True)
-
             with c2:
-                st.markdown("#### Fat Soluble")
-                st.metric("Vitamin A (Retinol)", format_val(item, 'retol', 'µg'))
-                st.metric("Vitamin D2+D3", format_sum_val(item, ['ergcal', 'chocal'], 'µg'))
-                st.metric("Vitamin E", format_sum_val(item, ['vite', 'tocpha'], 'mg'))
-                st.metric("Vitamin K", format_sum_val(item, ['vitk1', 'vitk2'], 'µg'))
+                st.markdown("#### B-Complex Profile")
+                b_vits = {
+                    "Thiamine (B1)": 'thia', 
+                    "Riboflavin (B2)": 'ribf', 
+                    "Niacin (B3)": 'nia', 
+                    "Pantothenic Acid (B5)": 'pantac',
+                    "Total B6": 'vitb6c'
+                }
+                by_vals = [item.get(v, 0) for v in b_vits.values()]
+                be_vals = [item.get(f"{v}_e", 0) for v in b_vits.values()]
+                
+                fig_b = px.bar(x=list(b_vits.keys()), y=by_vals, error_y=be_vals, text_auto='.2s')
+                fig_b.update_traces(marker_color='#68D391', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_b.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=350)
+                st.plotly_chart(fig_b, use_container_width=True)
 
-        # --- TAB 4: FATS ---
+        # --- TAB 4: FAT SOLUBLE VITAMINS ---
         with tabs[3]:
+            st.write("")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Retinol (Vit A)", format_val(item, 'retol', 'µg'))
+            c2.metric("Ergocalciferol (D2)", format_val(item, 'ergcal', 'µg'))
+            c3.metric("Cholecalciferol (D3)", format_val(item, 'chocal', 'µg'))
+            
+            st.write("")
+            c4, c5, c6 = st.columns(3)
+            c4.metric("Total Vitamin E", format_val(item, 'vite', 'mg'))
+            c5.metric("Phylloquinones (K1)", format_val(item, 'vitk1', 'µg'))
+            c6.metric("Menaquinones (K2)", format_val(item, 'vitk2', 'µg'))
+            
+            st.markdown("---")
+            st.markdown("#### Vitamin E Profile (mg)")
+            
+            vit_e_keys = {
+                "α-Tocopherol": 'tocpha', "β-Tocopherol": 'tocphb', "γ-Tocopherol": 'tocphg', "δ-Tocopherol": 'tocphd',
+                "α-Tocotrienol": 'toctra', "β-Tocotrienol": 'toctrb', "γ-Tocotrienol": 'toctrg', "δ-Tocotrienol": 'toctrd'
+            }
+            ey_vals = [item.get(k, 0) for k in vit_e_keys.values()]
+            ee_vals = [item.get(f"{k}_e", 0) for k in vit_e_keys.values()]
+            
+            fig_vite = px.bar(x=list(vit_e_keys.keys()), y=ey_vals, error_y=ee_vals, text_auto='.2s')
+            fig_vite.update_traces(marker_color='#F6E05E', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+            fig_vite.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=400)
+            st.plotly_chart(fig_vite, use_container_width=True)
+
+        # --- TAB 5: FATS & LIPIDS ---
+        with tabs[4]:
             st.write("")
             c1, c2 = st.columns(2)
             with c1:
@@ -321,8 +355,8 @@ if not df.empty:
                 st.metric("Cholesterol", format_val(item, 'cholc', 'mg'))
                 st.metric("Omega-3 (ALA)", format_val(item, 'ala', 'mg'))
 
-        # --- TAB 5: AMINO ACIDS ---
-        with tabs[4]:
+        # --- TAB 6: AMINO ACIDS ---
+        with tabs[5]:
             st.write("")
             st.markdown("#### Essential Amino Acids (mg/g N)")
             aa_labels = ["Arg", "His", "Ile", "Leu", "Lys", "Met", "Phe", "Thr", "Trp", "Val"]
@@ -330,8 +364,8 @@ if not df.empty:
             aa_values = [item.get(k, 0) for k in aa_keys]
             st.plotly_chart(plot_radar(aa_values, aa_labels, "Amino Profile", "#48BB78"), use_container_width=True)
 
-        # --- TAB 6: BIOACTIVES ---
-        with tabs[5]:
+        # --- TAB 7: BIOACTIVES ---
+        with tabs[6]:
             st.write("")
             c1, c2 = st.columns(2)
             with c1:
@@ -347,8 +381,8 @@ if not df.empty:
                 st.metric("Total Oxalates", format_val(item, 'oxalt', 'mg'))
                 st.metric("Saponins", format_val(item, 'sapon', 'mg'))
 
-        # --- TAB 7: CAROTENOIDS ---
-        with tabs[6]:
+        # --- TAB 8: CAROTENOIDS ---
+        with tabs[7]:
             st.write("")
             c1, c2 = st.columns([1, 1.5])
             with c1:
