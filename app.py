@@ -365,16 +365,63 @@ if not df.empty:
         # --- TAB 6: FATS & LIPIDS ---
         with tabs[5]:
             st.write("")
-            c1, c2 = st.columns(2)
-            with c1:
-                st.markdown("#### Fat Composition")
-                fats = {"Saturated (SFA)": item.get('fasat', 0), "Monounsat (MUFA)": item.get('fams', 0), "Polyunsat (PUFA)": item.get('fapu', 0)}
-                st.plotly_chart(plot_radar(list(fats.values()), list(fats.keys()), "Fatty Acids", "#F56565"), use_container_width=True)
             
-            with c2:
-                st.markdown("#### Lipid Health")
-                st.metric("Cholesterol", format_val(item, 'cholc', 'mg'))
-                st.metric("Omega-3 (ALA)", format_val(item, 'ala', 'mg'))
+            # Top-Level Lipids Metrics
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Saturated (SFA)", format_val(item, 'fasat', 'g'))
+            c2.metric("Monounsat (MUFA)", format_val(item, 'fams', 'g'))
+            c3.metric("Polyunsat (PUFA)", format_val(item, 'fapu', 'g'))
+            c4.metric("Cholesterol", format_val(item, 'cholc', 'mg'))
+            
+            st.markdown("---")
+            
+            c_sfa, c_ufa = st.columns(2)
+            
+            with c_sfa:
+                st.markdown("#### Saturated Fatty Acids (g)")
+                sfa_keys = {
+                    "Capric (10:0)": 'f10d0',
+                    "Undecanoic (11:0)": 'f11d0',
+                    "Lauric (12:0)": 'f12d0',
+                    "Myristic (14:0)": 'f14d0',
+                    "Pentadecanoic (15:0)": 'f15d0',
+                    "Palmitic (16:0)": 'f16d0',
+                    "Stearic (18:0)": 'f18d0',
+                    "Arachidic (20:0)": 'f20d0',
+                    "Behenic (22:0)": 'f22d0',
+                    "Lignoceric (24:0)": 'f24d0'
+                }
+                sy_vals = [item.get(k, 0) for k in sfa_keys.values()]
+                se_vals = [item.get(f"{k}_e", 0) for k in sfa_keys.values()]
+                
+                fig_sfa = px.bar(x=list(sfa_keys.keys()), y=sy_vals, error_y=se_vals, text_auto='.2s')
+                fig_sfa.update_traces(marker_color='#F56565', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_sfa.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=450)
+                st.plotly_chart(fig_sfa, use_container_width=True)
+            
+            with c_ufa:
+                st.markdown("#### Unsaturated Fatty Acids (g)")
+                ufa_keys = {
+                    "Myristoleic (14:1)": 'f14d1cn5',
+                    "Palmitoleic (16:1)": 'f16d1cn7',
+                    "Oleic (18:1)": 'f18d1cn9',
+                    "Eicosenoic (20:1)": 'f20d1cn9',
+                    "Erucic (22:1)": 'f22d1cn9',
+                    "Nervonic (24:1)": 'f24d1cn9',
+                    "Linoleic (18:2)": 'f18d2cn6',
+                    "ALA (18:3 n-3)": 'f18d3n3',
+                    "Eicosadienoic (20:2)": 'f20d2n6',
+                    "Arachidonic (20:4)": 'f20d4n6',
+                    "EPA (20:5 n-3)": 'f20d5n3'
+                }
+                uy_vals = [item.get(k, 0) for k in ufa_keys.values()]
+                ue_vals = [item.get(f"{k}_e", 0) for k in ufa_keys.values()]
+                
+                fig_ufa = px.bar(x=list(ufa_keys.keys()), y=uy_vals, error_y=ue_vals, text_auto='.2s')
+                # Color code: MUFAs a slightly different shade if preferred, but for now we group as Unsaturated
+                fig_ufa.update_traces(marker_color='#48BB78', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_ufa.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=450)
+                st.plotly_chart(fig_ufa, use_container_width=True)
 
         # --- TAB 7: AMINO ACIDS ---
         with tabs[6]:
