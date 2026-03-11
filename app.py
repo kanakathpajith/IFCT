@@ -13,79 +13,125 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Premium Custom Theme (Executive Dark & Champagne Gold)
-st.markdown("""
+# Theme Selection in Sidebar
+theme_choice = st.sidebar.radio("🎨 Select Theme", ["Dark (Executive)", "Light (Clean)"], horizontal=True)
+
+# Define Theme Variables with Gradients
+if "Dark" in theme_choice:
+    theme_css = """
+        --bg-gradient: linear-gradient(135deg, #0a0b10 0%, #1c212c 100%);
+        --sidebar-gradient: linear-gradient(180deg, #12141a 0%, #0a0b10 100%);
+        --card-bg: rgba(26, 29, 36, 0.75); /* Semi-transparent for glass effect */
+        --text-primary: #E2E8F0;
+        --text-muted: #A0AEC0;
+        --accent-color: #E6C27A;
+        --border-color: rgba(45, 49, 58, 0.8);
+        --chart-grid: #2D313A;
+    """
+    chart_font = '#A0AEC0'
+    chart_grid = '#2D313A'
+    chart_bg = 'rgba(0,0,0,0)'
+else:
+    theme_css = """
+        --bg-gradient: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+        --sidebar-gradient: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+        --card-bg: rgba(255, 255, 255, 0.85); /* Semi-transparent for glass effect */
+        --text-primary: #0F172A;
+        --text-muted: #475569;
+        --accent-color: #B45309; /* Deep Bronze/Gold */
+        --border-color: rgba(226, 232, 240, 0.8);
+        --chart-grid: #E2E8F0;
+    """
+    chart_font = '#475569'
+    chart_grid = '#E2E8F0'
+    chart_bg = 'rgba(0,0,0,0)'
+
+# Inject Dynamic CSS
+st.markdown(f"""
 <style>
-    /* Main Background & Typography */
-    .stApp { 
-        background-color: #0F1116; 
-        color: #E2E8F0; 
-        font-family: 'Inter', sans-serif; 
-    }
+    :root {{
+        {theme_css}
+    }}
     
-    /* Headers */
-    h1, h2, h3, h4 { 
-        color: #E6C27A !important; /* Champagne Gold */
+    /* OVERRIDE STREAMLIT DEFAULT BACKGROUNDS */
+    .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {{ 
+        background: var(--bg-gradient) !important;
+        background-attachment: fixed !important;
+        color: var(--text-primary) !important; 
+        font-family: 'Inter', sans-serif; 
+    }}
+    
+    /* Headers & Text */
+    h1, h2, h3, h4, p, span {{ 
+        color: var(--text-primary) !important; 
+    }}
+    h1, h2, h3, h4 {{
+        color: var(--accent-color) !important;
         font-weight: 600 !important;
         letter-spacing: 0.5px;
-    }
+    }}
     
-    /* Elegant Metric Cards */
-    div[data-testid="stMetric"] { 
-        background-color: #1A1D24; 
-        border: 1px solid #2D313A; 
+    /* Glassmorphism Metric Cards */
+    div[data-testid="stMetric"] {{ 
+        background: var(--card-bg) !important; 
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color); 
         border-radius: 12px; 
         padding: 16px 20px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        transition: transform 0.2s ease-in-out;
-    }
-    div[data-testid="stMetric"]:hover {
-        transform: translateY(-2px);
-        border-color: #E6C27A;
-    }
-    div[data-testid="stMetricLabel"] { 
-        color: #A0AEC0; 
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    }}
+    div[data-testid="stMetric"]:hover {{
+        transform: translateY(-3px);
+        border-color: var(--accent-color);
+    }}
+    div[data-testid="stMetricLabel"] {{ 
+        color: var(--text-muted) !important; 
         font-size: 0.95rem;
         font-weight: 500;
         margin-bottom: 4px;
-    }
-    div[data-testid="stMetricValue"] { 
-        color: #FFFFFF; 
+    }}
+    div[data-testid="stMetricValue"] {{ 
+        color: var(--text-primary) !important; 
         font-size: 1.8rem; 
         font-weight: 700;
-    }
+    }}
     
     /* Styled Tabs */
-    .stTabs [data-baseweb="tab-list"] {
+    .stTabs [data-baseweb="tab-list"] {{
         gap: 8px;
         background-color: transparent;
         padding-bottom: 5px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #1A1D24;
+    }}
+    .stTabs [data-baseweb="tab"] {{
+        background: var(--card-bg);
         border-radius: 6px;
         padding: 10px 24px;
-        border: 1px solid #2D313A;
-        color: #A0AEC0;
-    }
-    .stTabs [aria-selected="true"] { 
-        background-color: #E6C27A !important; 
-        color: #0F1116 !important; 
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+    }}
+    .stTabs [aria-selected="true"] {{ 
+        background-color: var(--accent-color) !important; 
+        color: #FFFFFF !important; 
         font-weight: 700;
-        border-color: #E6C27A;
-    }
+        border-color: var(--accent-color);
+    }}
     
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background-color: #15171C;
-        border-right: 1px solid #2D313A;
-    }
+    /* Sidebar styling with gradient override */
+    [data-testid="stSidebar"] {{
+        background: var(--sidebar-gradient) !important;
+        border-right: 1px solid var(--border-color);
+    }}
+    [data-testid="stSidebarNav"] {{
+        background: transparent !important;
+    }}
     
     /* Dividers */
-    hr {
-        border-color: #2D313A;
-        opacity: 0.5;
-    }
+    hr {{
+        border-color: var(--border-color);
+        opacity: 0.8;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -134,12 +180,12 @@ def plot_radar(values, labels, title, color):
     ))
     fig.update_layout(
         polar=dict(
-            radialaxis=dict(visible=True, showticklabels=False, gridcolor='#2D313A', linecolor='#2D313A'),
-            angularaxis=dict(gridcolor='#2D313A', linecolor='#2D313A')
+            radialaxis=dict(visible=True, showticklabels=False, gridcolor=chart_grid, linecolor=chart_grid),
+            angularaxis=dict(gridcolor=chart_grid, linecolor=chart_grid)
         ),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#A0AEC0', size=12),
+        paper_bgcolor=chart_bg,
+        plot_bgcolor=chart_bg,
+        font=dict(color=chart_font, size=12),
         showlegend=False,
         margin=dict(t=40, b=40, l=40, r=40)
     )
@@ -150,6 +196,7 @@ def plot_radar(values, labels, title, color):
 # -----------------------------------------------------------------------------
 if not df.empty:
     with st.sidebar:
+        st.markdown("---")
         st.title("🥗 IFCT Explorer")
         st.caption(f"**Database Size:** {len(df)} curated items")
         st.markdown("---")
@@ -175,7 +222,7 @@ if not df.empty:
         c1, c2 = st.columns([3, 1])
         with c1:
             st.title(item['name'])
-            st.markdown(f"<span style='color:#A0AEC0; font-size:1.1rem;'><i>{item['scie']}</i> • {item['regn']}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='color:var(--text-muted); font-size:1.1rem;'><i>{item['scie']}</i> • {item['regn']}</span>", unsafe_allow_html=True)
         with c2:
             st.metric("Total Energy", f"{int(item['enerc'])} kcal")
         
@@ -186,7 +233,7 @@ if not df.empty:
 
         # --- TAB 1: MACROS ---
         with tabs[0]:
-            st.write("") # Padding
+            st.write("")
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Protein", f"{item['protcnt']} g")
             c2.metric("Carbs (Avail)", f"{item['choavldf']} g")
@@ -196,18 +243,19 @@ if not df.empty:
             st.markdown("<br>", unsafe_allow_html=True)
             col_chart, col_details = st.columns([1.2, 1])
             with col_chart:
-                # Upgraded sleek donut chart
                 fig = px.pie(
                     names=['Protein', 'Carbohydrates', 'Fat'],
                     values=[item['protcnt'], item['choavldf'], item['fatce']],
                     hole=0.75,
                     color_discrete_sequence=['#48BB78', '#E6C27A', '#F56565']
                 )
-                fig.update_traces(textinfo='percent+label', textfont_size=14, hoverinfo='label+percent+value', marker=dict(line=dict(color='#0F1116', width=3)))
-                fig.update_layout(showlegend=False, paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#E2E8F0'), margin=dict(t=10, b=10, l=10, r=10), height=350)
                 
-                # Add center text
-                fig.add_annotation(text="Macros", x=0.5, y=0.5, font_size=20, showarrow=False, font_color="#A0AEC0")
+                # Dynamic pie chart border based on theme
+                border_color = '#1c212c' if "Dark" in theme_choice else '#ffffff'
+                fig.update_traces(textinfo='percent+label', textfont_size=14, hoverinfo='label+percent+value', marker=dict(line=dict(color=border_color, width=3)))
+                fig.update_layout(showlegend=False, paper_bgcolor=chart_bg, font=dict(color=chart_font), margin=dict(t=10, b=10, l=10, r=10), height=350)
+                
+                fig.add_annotation(text="Macros", x=0.5, y=0.5, font_size=20, showarrow=False, font_color=chart_font)
                 st.plotly_chart(fig, use_container_width=True)
             
             with col_details:
@@ -224,10 +272,9 @@ if not df.empty:
             with c1:
                 st.markdown("#### Macro Minerals (mg)")
                 mins = {"Calcium": item['ca'], "Magnesium": item['mg'], "Phosphorus": item['p'], "Sodium": item['na'], "Potassium": item['k']}
-                # Refined Bar Chart
                 fig_macro = px.bar(x=list(mins.keys()), y=list(mins.values()), text_auto='.2s')
-                fig_macro.update_traces(marker_color='#E6C27A', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
-                fig_macro.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', yaxis=dict(showgrid=True, gridcolor='#2D313A'), xaxis_title="", yaxis_title="mg", font=dict(color='#A0AEC0'))
+                fig_macro.update_traces(marker_color='#E6C27A' if "Dark" in theme_choice else '#B45309', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+                fig_macro.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font))
                 st.plotly_chart(fig_macro, use_container_width=True)
             
             with c2:
@@ -235,7 +282,7 @@ if not df.empty:
                 trace = {"Iron": item['fe'], "Zinc": item['zn'], "Copper": item['cu'], "Manganese": item['mn']}
                 fig_trace = px.bar(x=list(trace.keys()), y=list(trace.values()), text_auto='.2s')
                 fig_trace.update_traces(marker_color='#4299E1', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
-                fig_trace.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', yaxis=dict(showgrid=True, gridcolor='#2D313A'), xaxis_title="", yaxis_title="mg", font=dict(color='#A0AEC0'))
+                fig_trace.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font))
                 st.plotly_chart(fig_trace, use_container_width=True)
 
         # --- TAB 3: VITAMINS ---
@@ -297,8 +344,8 @@ if not df.empty:
                 st.markdown("#### Polyphenols & Antioxidants")
                 st.metric("Total Polyphenols", f"{item.get('polyph', 0)} mg")
                 st.markdown("##### Specific Phenolics")
-                st.caption(f"**Gallic Acid:** {item.get('gallac', 0)} mg")
-                st.caption(f"**Quercetin:** {item.get('querce', 0)} mg")
+                st.markdown(f"**Gallic Acid:** <span style='color:var(--text-muted);'>{item.get('gallac', 0)} mg</span>", unsafe_allow_html=True)
+                st.markdown(f"**Quercetin:** <span style='color:var(--text-muted);'>{item.get('querce', 0)} mg</span>", unsafe_allow_html=True)
             
             with c2:
                 st.markdown("#### Anti-Nutrients")
