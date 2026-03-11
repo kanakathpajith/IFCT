@@ -6,11 +6,6 @@ import plotly.graph_objects as go
 # -----------------------------------------------------------------------------
 # 1. CONFIGURATION
 # -----------------------------------------------------------------------------
-import streamlit as st
-
-# -----------------------------------------------------------------------------
-# Page Configuration
-# -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="IFCT 2017 Master",
     page_icon="🥗",
@@ -18,124 +13,90 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# -----------------------------------------------------------------------------
-# Premium Dark Theme Custom CSS
-# -----------------------------------------------------------------------------
+# Premium Custom Theme (Executive Dark & Champagne Gold)
 st.markdown("""
 <style>
-    /* 1. Main Background and Typography */
+    /* Main Background & Typography */
     .stApp { 
-        background-color: #0B0E14; /* Deep, rich dark background */
-        color: #E2E8F0;            /* Crisp, readable off-white text */
-        font-family: 'Inter', 'Segoe UI', sans-serif; 
-    }
-
-    /* 2. Sidebar Styling */
-    [data-testid="stSidebar"] {
-        background-color: #151A22; /* Slightly lighter than main bg for depth */
-        border-right: 1px solid #2D3748;
-    }
-
-    /* 3. Elegant Gold Headings */
-    h1, h2, h3, h4, h5, h6 { 
-        color: #D4AF37 !important; 
-        font-weight: 600;
-        letter-spacing: 0.5px;
-    }
-
-    /* 4. Premium Metric Cards */
-    div[data-testid="stMetric"] { 
-        background-color: #1A202C; 
-        border: 1px solid #2D3748; 
-        border-radius: 12px; 
-        padding: 15px 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        background-color: #0F1116; 
+        color: #E2E8F0; 
+        font-family: 'Inter', sans-serif; 
     }
     
-    /* Subtle Gold Glow on Metric Hover */
-    div[data-testid="stMetric"]:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 15px rgba(212, 175, 55, 0.15); 
-        border-color: #D4AF37;
+    /* Headers */
+    h1, h2, h3, h4 { 
+        color: #E6C27A !important; /* Champagne Gold */
+        font-weight: 600 !important;
+        letter-spacing: 0.5px;
     }
-
+    
+    /* Elegant Metric Cards */
+    div[data-testid="stMetric"] { 
+        background-color: #1A1D24; 
+        border: 1px solid #2D313A; 
+        border-radius: 12px; 
+        padding: 16px 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease-in-out;
+    }
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+        border-color: #E6C27A;
+    }
     div[data-testid="stMetricLabel"] { 
         color: #A0AEC0; 
         font-size: 0.95rem;
         font-weight: 500;
+        margin-bottom: 4px;
     }
-    
     div[data-testid="stMetricValue"] { 
         color: #FFFFFF; 
-        font-size: 2rem; 
+        font-size: 1.8rem; 
         font-weight: 700;
     }
-
-    /* 5. Sophisticated Tabs */
+    
+    /* Styled Tabs */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: transparent;
+        padding-bottom: 5px;
     }
-    
     .stTabs [data-baseweb="tab"] {
-        background-color: #1A202C;
-        border-radius: 6px 6px 0 0;
-        border: 1px solid #2D3748;
-        border-bottom: none;
+        background-color: #1A1D24;
+        border-radius: 6px;
+        padding: 10px 24px;
+        border: 1px solid #2D313A;
         color: #A0AEC0;
-        padding: 10px 20px;
     }
-
     .stTabs [aria-selected="true"] { 
-        background-color: #D4AF37 !important; 
-        color: #0B0E14 !important; 
+        background-color: #E6C27A !important; 
+        color: #0F1116 !important; 
         font-weight: 700;
-        border-color: #D4AF37;
+        border-color: #E6C27A;
     }
     
-    /* Hide the default Streamlit top decoration */
-    header {visibility: hidden;}
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: #15171C;
+        border-right: 1px solid #2D313A;
+    }
+    
+    /* Dividers */
+    hr {
+        border-color: #2D313A;
+        opacity: 0.5;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-
 # -----------------------------------------------------------------------------
-# Demo Content (To preview the styles)
-# -----------------------------------------------------------------------------
-st.title("🥗 IFCT 2017 Nutritional Explorer")
-st.markdown("Explore the Indian Food Composition Tables with advanced analytics and filtering.")
-
-# Sidebar demo
-with st.sidebar:
-    st.header("Filters")
-    st.selectbox("Select Food Group", ["Cereals", "Pulses", "Vegetables", "Fruits"])
-    st.slider("Protein Content (g)", 0, 100, (10, 50))
-
-# Metrics demo
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total Foods", "528", "+12 additions")
-col2.metric("Avg Protein", "14.2 g", "High")
-col3.metric("Avg Fiber", "8.5 g", "-1.2 g")
-col4.metric("Data Completeness", "98.5%", "+0.5%")
-
-st.markdown("---")
-
-# Tabs demo
-tab1, tab2, tab3 = st.tabs(["📊 Nutritional Overview", "🔍 Search Database", "📈 Comparative Analysis"])
-
-with tab1:
-    st.subheader("Macronutrient Distribution")
-    st.info("Your charts and dataframes will go here. The dark theme will make brightly colored charts stand out beautifully.")# -----------------------------------------------------------------------------
 # 2. DATA PROCESSING
 # -----------------------------------------------------------------------------
 @st.cache_data
 def load_data():
     try:
-        # Load the uploaded file
         df = pd.read_csv("extracted_ifct_data.csv")
         
-        # 1. Generate 'Group' column from IFCT Code (First Letter)
         code_map = {
             'A': 'Cereals & Millets', 'B': 'Grain Legumes', 'C': 'Green Leafy Veg',
             'D': 'Other Veg', 'E': 'Fruits', 'F': 'Roots & Tubers',
@@ -146,11 +107,9 @@ def load_data():
             'S': 'Freshwater Fish'
         }
         
-        # Extract first letter of code (e.g., 'A001' -> 'A')
         df['Group_Code'] = df['code'].astype(str).str[0].str.upper()
         df['Group'] = df['Group_Code'].map(code_map).fillna('Other')
         
-        # 2. Clean Numeric Columns (Fill NaNs with 0 for plotting)
         numeric_cols = df.select_dtypes(include=['number']).columns
         df[numeric_cols] = df[numeric_cols].fillna(0)
         
@@ -169,16 +128,20 @@ def plot_radar(values, labels, title, color):
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(
         r=values, theta=labels, fill='toself', name=title,
-        line=dict(color=color),
-        fillcolor=f"rgba{tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (0.3,)}"
+        line=dict(color=color, width=2),
+        fillcolor=f"rgba{tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (0.2,)}",
+        marker=dict(size=6)
     ))
     fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, showticklabels=False)),
+        polar=dict(
+            radialaxis=dict(visible=True, showticklabels=False, gridcolor='#2D313A', linecolor='#2D313A'),
+            angularaxis=dict(gridcolor='#2D313A', linecolor='#2D313A')
+        ),
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#FAFAFA'),
+        font=dict(color='#A0AEC0', size=12),
         showlegend=False,
-        margin=dict(t=30, b=30, l=40, r=40)
+        margin=dict(t=40, b=40, l=40, r=40)
     )
     return fig
 
@@ -188,12 +151,11 @@ def plot_radar(values, labels, title, color):
 if not df.empty:
     with st.sidebar:
         st.title("🥗 IFCT Explorer")
-        st.caption(f"Loaded {len(df)} items from database")
+        st.caption(f"**Database Size:** {len(df)} curated items")
         st.markdown("---")
         
-        # Filter Logic
         all_groups = ["All"] + sorted(list(df['Group'].unique()))
-        selected_group = st.selectbox("Filter by Group", all_groups)
+        selected_group = st.selectbox("Filter by Category", all_groups)
         
         if selected_group != "All":
             filtered_df = df[df['Group'] == selected_group]
@@ -203,7 +165,7 @@ if not df.empty:
         selected_item = st.selectbox("Select Food Item", filtered_df['name'].unique())
         
         st.markdown("---")
-        st.info("Displaying IFCT 2017 Standard Data per 100g edible portion.")
+        st.info("📊 Values standard per **100g** edible portion.")
 
     # Main Content
     if selected_item:
@@ -211,9 +173,11 @@ if not df.empty:
         
         # Header
         c1, c2 = st.columns([3, 1])
-        c1.title(item['name'])
-        c1.caption(f"**Scientific Name:** *{item['scie']}* | **Region:** {item['regn']}")
-        c2.metric("Energy", f"{int(item['enerc'])} kcal")
+        with c1:
+            st.title(item['name'])
+            st.markdown(f"<span style='color:#A0AEC0; font-size:1.1rem;'><i>{item['scie']}</i> • {item['regn']}</span>", unsafe_allow_html=True)
+        with c2:
+            st.metric("Total Energy", f"{int(item['enerc'])} kcal")
         
         st.markdown("---")
 
@@ -222,22 +186,28 @@ if not df.empty:
 
         # --- TAB 1: MACROS ---
         with tabs[0]:
+            st.write("") # Padding
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Protein", f"{item['protcnt']} g")
             c2.metric("Carbs (Avail)", f"{item['choavldf']} g")
             c3.metric("Total Fat", f"{item['fatce']} g")
-            c4.metric("Fiber", f"{item['fibtg']} g")
+            c4.metric("Dietary Fiber", f"{item['fibtg']} g")
             
-            st.write("")
-            col_chart, col_details = st.columns(2)
+            st.markdown("<br>", unsafe_allow_html=True)
+            col_chart, col_details = st.columns([1.2, 1])
             with col_chart:
+                # Upgraded sleek donut chart
                 fig = px.pie(
-                    names=['Protein', 'Carbs', 'Fat'],
+                    names=['Protein', 'Carbohydrates', 'Fat'],
                     values=[item['protcnt'], item['choavldf'], item['fatce']],
-                    hole=0.6,
-                    color_discrete_sequence=['#4CAF50', '#FFC107', '#F44336']
+                    hole=0.75,
+                    color_discrete_sequence=['#48BB78', '#E6C27A', '#F56565']
                 )
-                fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'), height=300)
+                fig.update_traces(textinfo='percent+label', textfont_size=14, hoverinfo='label+percent+value', marker=dict(line=dict(color='#0F1116', width=3)))
+                fig.update_layout(showlegend=False, paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#E2E8F0'), margin=dict(t=10, b=10, l=10, r=10), height=350)
+                
+                # Add center text
+                fig.add_annotation(text="Macros", x=0.5, y=0.5, font_size=20, showarrow=False, font_color="#A0AEC0")
                 st.plotly_chart(fig, use_container_width=True)
             
             with col_details:
@@ -249,27 +219,28 @@ if not df.empty:
 
         # --- TAB 2: MINERALS ---
         with tabs[1]:
+            st.write("")
             c1, c2 = st.columns(2)
             with c1:
                 st.markdown("#### Macro Minerals (mg)")
-                mins = {
-                    "Calcium": item['ca'], "Magnesium": item['mg'], 
-                    "Phosphorus": item['p'], "Sodium": item['na'], "Potassium": item['k']
-                }
-                st.bar_chart(pd.Series(mins), color="#D4AF37")
+                mins = {"Calcium": item['ca'], "Magnesium": item['mg'], "Phosphorus": item['p'], "Sodium": item['na'], "Potassium": item['k']}
+                # Refined Bar Chart
+                fig_macro = px.bar(x=list(mins.keys()), y=list(mins.values()), text_auto='.2s')
+                fig_macro.update_traces(marker_color='#E6C27A', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+                fig_macro.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', yaxis=dict(showgrid=True, gridcolor='#2D313A'), xaxis_title="", yaxis_title="mg", font=dict(color='#A0AEC0'))
+                st.plotly_chart(fig_macro, use_container_width=True)
             
             with c2:
                 st.markdown("#### Trace Elements (mg)")
-                trace = {
-                    "Iron": item['fe'], "Zinc": item['zn'], 
-                    "Copper": item['cu'], "Manganese": item['mn']
-                }
-                fig_trace = px.bar(x=list(trace.keys()), y=list(trace.values()), color_discrete_sequence=['#FF6347'])
-                fig_trace.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'), yaxis_title="mg")
+                trace = {"Iron": item['fe'], "Zinc": item['zn'], "Copper": item['cu'], "Manganese": item['mn']}
+                fig_trace = px.bar(x=list(trace.keys()), y=list(trace.values()), text_auto='.2s')
+                fig_trace.update_traces(marker_color='#4299E1', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+                fig_trace.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', yaxis=dict(showgrid=True, gridcolor='#2D313A'), xaxis_title="", yaxis_title="mg", font=dict(color='#A0AEC0'))
                 st.plotly_chart(fig_trace, use_container_width=True)
 
         # --- TAB 3: VITAMINS ---
         with tabs[2]:
+            st.write("")
             c1, c2 = st.columns(2)
             with c1:
                 st.markdown("#### Water Soluble")
@@ -292,6 +263,7 @@ if not df.empty:
 
         # --- TAB 4: FATS ---
         with tabs[3]:
+            st.write("")
             c1, c2 = st.columns(2)
             with c1:
                 st.markdown("#### Fat Composition")
@@ -300,38 +272,36 @@ if not df.empty:
                     "Monounsat (MUFA)": item.get('fams', 0),
                     "Polyunsat (PUFA)": item.get('fapu', 0)
                 }
-                st.plotly_chart(plot_radar(list(fats.values()), list(fats.keys()), "Fatty Acids", "#FF7F50"), use_container_width=True)
+                st.plotly_chart(plot_radar(list(fats.values()), list(fats.keys()), "Fatty Acids", "#F56565"), use_container_width=True)
             
             with c2:
                 st.markdown("#### Lipid Health")
                 st.metric("Cholesterol", f"{item.get('cholc', 0)} mg")
-                st.metric("Omega-3 (Alpha-Linolenic)", f"{item.get('ala', 0)} mg")
+                st.metric("Omega-3 (ALA)", f"{item.get('ala', 0)} mg")
 
         # --- TAB 5: AMINO ACIDS ---
         with tabs[4]:
+            st.write("")
             st.markdown("#### Essential Amino Acids (mg/g N)")
             aa_labels = ["Arg", "His", "Ile", "Leu", "Lys", "Met", "Phe", "Thr", "Trp", "Val"]
             aa_keys = ['arg', 'his', 'ile', 'leu', 'lys', 'met', 'phe', 'thr', 'trp', 'val']
             aa_values = [item.get(k, 0) for k in aa_keys]
             
-            st.plotly_chart(plot_radar(aa_values, aa_labels, "Amino Profile", "#ADFF2F"), use_container_width=True)
+            st.plotly_chart(plot_radar(aa_values, aa_labels, "Amino Profile", "#48BB78"), use_container_width=True)
 
         # --- TAB 6: BIOACTIVES ---
         with tabs[5]:
+            st.write("")
             c1, c2 = st.columns(2)
             with c1:
                 st.markdown("#### Polyphenols & Antioxidants")
                 st.metric("Total Polyphenols", f"{item.get('polyph', 0)} mg")
-                # Add specific phenols if available in your CSV
-                st.write("**Specific Phenolics:**")
-                st.write(f"- Gallic Acid: {item.get('gallac', 0)} mg")
-                st.write(f"- Quercetin: {item.get('querce', 0)} mg")
+                st.markdown("##### Specific Phenolics")
+                st.caption(f"**Gallic Acid:** {item.get('gallac', 0)} mg")
+                st.caption(f"**Quercetin:** {item.get('querce', 0)} mg")
             
             with c2:
                 st.markdown("#### Anti-Nutrients")
                 st.metric("Phytate", f"{item.get('phytac', 0)} mg")
                 st.metric("Total Oxalates", f"{item.get('oxalt', 0)} mg")
-
                 st.metric("Saponins", f"{item.get('sapon', 0)} mg")
-
-
