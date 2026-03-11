@@ -103,6 +103,7 @@ st.markdown(f"""
         gap: 8px;
         background-color: transparent;
         padding-bottom: 5px;
+        flex-wrap: wrap;
     }}
     .stTabs [data-baseweb="tab"] {{
         background: var(--card-bg);
@@ -110,6 +111,7 @@ st.markdown(f"""
         padding: 10px 24px;
         border: 1px solid var(--border-color);
         color: var(--text-muted);
+        white-space: nowrap;
     }}
     .stTabs [aria-selected="true"] {{ 
         background-color: var(--accent-color) !important; 
@@ -229,40 +231,58 @@ if not df.empty:
         st.markdown("---")
 
         # Tabs
-        tabs = st.tabs(["🍽️ Macros", "💎 Minerals", "💊 Vitamins", "💧 Fats", "🧬 Amino Acids", "🌿 Bioactives"])
+        tabs = st.tabs(["🍽️ Proximates & Fibre", "💎 Minerals", "💊 Vitamins", "💧 Fats", "🧬 Amino Acids", "🌿 Bioactives"])
 
-        # --- TAB 1: MACROS ---
+        # --- TAB 1: PROXIMATES & FIBRE ---
         with tabs[0]:
             st.write("")
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("Protein", f"{item['protcnt']} g")
-            c2.metric("Carbs (Avail)", f"{item['choavldf']} g")
-            c3.metric("Total Fat", f"{item['fatce']} g")
-            c4.metric("Dietary Fiber", f"{item['fibtg']} g")
+            st.markdown("#### Proximate Principles")
+            # Proximate Metrics Row 1
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Moisture (Water)", f"{item.get('water', 0)} g")
+            c2.metric("Protein", f"{item.get('protcnt', 0)} g")
+            c3.metric("Ash", f"{item.get('ash', 0)} g")
             
+            # Proximate Metrics Row 2
+            st.write("")
+            c4, c5, c6 = st.columns(3)
+            c4.metric("Total Fat", f"{item.get('fatce', 0)} g")
+            c5.metric("Carbs (Avail)", f"{item.get('choavldf', 0)} g")
+            c6.metric("Energy", f"{int(item.get('enerc', 0))} kcal")
+
+            st.markdown("---")
+            
+            # Dietary Fibre
+            st.markdown("#### Dietary Fibre Breakdown")
+            fc1, fc2, fc3 = st.columns(3)
+            fc1.metric("Total Dietary Fibre", f"{item.get('fibtg', 0)} g")
+            fc2.metric("Insoluble Fibre", f"{item.get('fibins', 0)} g")
+            fc3.metric("Soluble Fibre", f"{item.get('fibsol', 0)} g")
+
             st.markdown("<br>", unsafe_allow_html=True)
             col_chart, col_details = st.columns([1.2, 1])
             with col_chart:
+                # Updated Donut chart to show full proximate profile
                 fig = px.pie(
-                    names=['Protein', 'Carbohydrates', 'Fat'],
-                    values=[item['protcnt'], item['choavldf'], item['fatce']],
-                    hole=0.75,
-                    color_discrete_sequence=['#48BB78', '#E6C27A', '#F56565']
+                    names=['Protein', 'Carbohydrates', 'Fat', 'Moisture', 'Ash'],
+                    values=[item.get('protcnt', 0), item.get('choavldf', 0), item.get('fatce', 0), item.get('water', 0), item.get('ash', 0)],
+                    hole=0.65,
+                    color_discrete_sequence=['#48BB78', '#E6C27A', '#F56565', '#4299E1', '#A0AEC0']
                 )
                 
                 # Dynamic pie chart border based on theme
                 border_color = '#1c212c' if "Dark" in theme_choice else '#ffffff'
-                fig.update_traces(textinfo='percent+label', textfont_size=14, hoverinfo='label+percent+value', marker=dict(line=dict(color=border_color, width=3)))
+                fig.update_traces(textinfo='percent+label', textfont_size=13, hoverinfo='label+percent+value', marker=dict(line=dict(color=border_color, width=2)))
                 fig.update_layout(showlegend=False, paper_bgcolor=chart_bg, font=dict(color=chart_font), margin=dict(t=10, b=10, l=10, r=10), height=350)
                 
-                fig.add_annotation(text="Macros", x=0.5, y=0.5, font_size=20, showarrow=False, font_color=chart_font)
+                fig.add_annotation(text="Proximates", x=0.5, y=0.5, font_size=18, showarrow=False, font_color=chart_font)
                 st.plotly_chart(fig, use_container_width=True)
             
             with col_details:
-                st.markdown("#### Carbohydrate Breakdown")
+                st.markdown("#### Other Carbohydrates")
                 st.dataframe(pd.DataFrame({
-                    "Component": ["Starch", "Total Sugars", "Soluble Fiber", "Insoluble Fiber"],
-                    "Value (g)": [item.get('starch', 0), item.get('fsugar', 0), item.get('fibsol', 0), item.get('fibins', 0)]
+                    "Component": ["Starch", "Total Sugars"],
+                    "Value (g)": [item.get('starch', 0), item.get('fsugar', 0)]
                 }), hide_index=True, use_container_width=True)
 
         # --- TAB 2: MINERALS ---
