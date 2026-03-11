@@ -6,6 +6,11 @@ import plotly.graph_objects as go
 # -----------------------------------------------------------------------------
 # 1. CONFIGURATION
 # -----------------------------------------------------------------------------
+import streamlit as st
+
+# -----------------------------------------------------------------------------
+# Page Configuration
+# -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="IFCT 2017 Master",
     page_icon="🥗",
@@ -13,19 +18,115 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Theme
+# -----------------------------------------------------------------------------
+# Premium Dark Theme Custom CSS
+# -----------------------------------------------------------------------------
 st.markdown("""
 <style>
-    .stApp { background-color: #c6c1fe; color: #0d1117; font-family: 'Inter', sans-serif; }
-    h1, h2, h3 { color: #D4AF37 !important; }
-    div[data-testid="stMetric"] { background-color: #1E1E1E; border: 1px solid #333; border-radius: 8px; }
-    div[data-testid="stMetricLabel"] { color: #888; }
-    div[data-testid="stMetricValue"] { color: #FFF; font-size: 1.4rem; }
-    .stTabs [aria-selected="true"] { background-color: #D4AF37 !important; color: black !important; }
+    /* 1. Main Background and Typography */
+    .stApp { 
+        background-color: #0B0E14; /* Deep, rich dark background */
+        color: #E2E8F0;            /* Crisp, readable off-white text */
+        font-family: 'Inter', 'Segoe UI', sans-serif; 
+    }
+
+    /* 2. Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: #151A22; /* Slightly lighter than main bg for depth */
+        border-right: 1px solid #2D3748;
+    }
+
+    /* 3. Elegant Gold Headings */
+    h1, h2, h3, h4, h5, h6 { 
+        color: #D4AF37 !important; 
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    /* 4. Premium Metric Cards */
+    div[data-testid="stMetric"] { 
+        background-color: #1A202C; 
+        border: 1px solid #2D3748; 
+        border-radius: 12px; 
+        padding: 15px 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    
+    /* Subtle Gold Glow on Metric Hover */
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(212, 175, 55, 0.15); 
+        border-color: #D4AF37;
+    }
+
+    div[data-testid="stMetricLabel"] { 
+        color: #A0AEC0; 
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+    
+    div[data-testid="stMetricValue"] { 
+        color: #FFFFFF; 
+        font-size: 2rem; 
+        font-weight: 700;
+    }
+
+    /* 5. Sophisticated Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background-color: transparent;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background-color: #1A202C;
+        border-radius: 6px 6px 0 0;
+        border: 1px solid #2D3748;
+        border-bottom: none;
+        color: #A0AEC0;
+        padding: 10px 20px;
+    }
+
+    .stTabs [aria-selected="true"] { 
+        background-color: #D4AF37 !important; 
+        color: #0B0E14 !important; 
+        font-weight: 700;
+        border-color: #D4AF37;
+    }
+    
+    /* Hide the default Streamlit top decoration */
+    header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
+
 # -----------------------------------------------------------------------------
+# Demo Content (To preview the styles)
+# -----------------------------------------------------------------------------
+st.title("🥗 IFCT 2017 Nutritional Explorer")
+st.markdown("Explore the Indian Food Composition Tables with advanced analytics and filtering.")
+
+# Sidebar demo
+with st.sidebar:
+    st.header("Filters")
+    st.selectbox("Select Food Group", ["Cereals", "Pulses", "Vegetables", "Fruits"])
+    st.slider("Protein Content (g)", 0, 100, (10, 50))
+
+# Metrics demo
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Total Foods", "528", "+12 additions")
+col2.metric("Avg Protein", "14.2 g", "High")
+col3.metric("Avg Fiber", "8.5 g", "-1.2 g")
+col4.metric("Data Completeness", "98.5%", "+0.5%")
+
+st.markdown("---")
+
+# Tabs demo
+tab1, tab2, tab3 = st.tabs(["📊 Nutritional Overview", "🔍 Search Database", "📈 Comparative Analysis"])
+
+with tab1:
+    st.subheader("Macronutrient Distribution")
+    st.info("Your charts and dataframes will go here. The dark theme will make brightly colored charts stand out beautifully.")# -----------------------------------------------------------------------------
 # 2. DATA PROCESSING
 # -----------------------------------------------------------------------------
 @st.cache_data
@@ -232,4 +333,5 @@ if not df.empty:
                 st.metric("Total Oxalates", f"{item.get('oxalt', 0)} mg")
 
                 st.metric("Saponins", f"{item.get('sapon', 0)} mg")
+
 
