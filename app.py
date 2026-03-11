@@ -380,7 +380,6 @@ if not df.empty:
         with tabs[5]:
             st.write("")
             
-            # Top-Level Lipids Metrics
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Saturated (SFA)", format_val(item, 'fasat', 'g'))
             c2.metric("Monounsat (MUFA)", format_val(item, 'fams', 'g'))
@@ -394,15 +393,9 @@ if not df.empty:
             with c_sfa:
                 st.markdown("#### Saturated Fatty Acids (g)")
                 sfa_keys = {
-                    "Capric (10:0)": 'f10d0',
-                    "Undecanoic (11:0)": 'f11d0',
-                    "Lauric (12:0)": 'f12d0',
-                    "Myristic (14:0)": 'f14d0',
-                    "Pentadecanoic (15:0)": 'f15d0',
-                    "Palmitic (16:0)": 'f16d0',
-                    "Stearic (18:0)": 'f18d0',
-                    "Arachidic (20:0)": 'f20d0',
-                    "Behenic (22:0)": 'f22d0',
+                    "Capric (10:0)": 'f10d0', "Undecanoic (11:0)": 'f11d0', "Lauric (12:0)": 'f12d0',
+                    "Myristic (14:0)": 'f14d0', "Pentadecanoic (15:0)": 'f15d0', "Palmitic (16:0)": 'f16d0',
+                    "Stearic (18:0)": 'f18d0', "Arachidic (20:0)": 'f20d0', "Behenic (22:0)": 'f22d0',
                     "Lignoceric (24:0)": 'f24d0'
                 }
                 sy_vals = [item.get(k, 0) for k in sfa_keys.values()]
@@ -416,17 +409,10 @@ if not df.empty:
             with c_ufa:
                 st.markdown("#### Unsaturated Fatty Acids (g)")
                 ufa_keys = {
-                    "Myristoleic (14:1)": 'f14d1cn5',
-                    "Palmitoleic (16:1)": 'f16d1cn7',
-                    "Oleic (18:1)": 'f18d1cn9',
-                    "Eicosenoic (20:1)": 'f20d1cn9',
-                    "Erucic (22:1)": 'f22d1cn9',
-                    "Nervonic (24:1)": 'f24d1cn9',
-                    "Linoleic (18:2)": 'f18d2cn6',
-                    "ALA (18:3 n-3)": 'f18d3n3',
-                    "Eicosadienoic (20:2)": 'f20d2n6',
-                    "Arachidonic (20:4)": 'f20d4n6',
-                    "EPA (20:5 n-3)": 'f20d5n3'
+                    "Myristoleic (14:1)": 'f14d1cn5', "Palmitoleic (16:1)": 'f16d1cn7', "Oleic (18:1)": 'f18d1cn9',
+                    "Eicosenoic (20:1)": 'f20d1cn9', "Erucic (22:1)": 'f22d1cn9', "Nervonic (24:1)": 'f24d1cn9',
+                    "Linoleic (18:2)": 'f18d2cn6', "ALA (18:3 n-3)": 'f18d3n3', "Eicosadienoic (20:2)": 'f20d2n6',
+                    "Arachidonic (20:4)": 'f20d4n6', "EPA (20:5 n-3)": 'f20d5n3'
                 }
                 uy_vals = [item.get(k, 0) for k in ufa_keys.values()]
                 ue_vals = [item.get(f"{k}_e", 0) for k in ufa_keys.values()]
@@ -439,11 +425,35 @@ if not df.empty:
         # --- TAB 7: AMINO ACIDS ---
         with tabs[6]:
             st.write("")
-            st.markdown("#### Essential Amino Acids (mg/g N)")
-            aa_labels = ["Arg", "His", "Ile", "Leu", "Lys", "Met", "Phe", "Thr", "Trp", "Val"]
-            aa_keys = ['arg', 'his', 'ile', 'leu', 'lys', 'met', 'phe', 'thr', 'trp', 'val']
-            aa_values = [item.get(k, 0) for k in aa_keys]
-            st.plotly_chart(plot_radar(aa_values, aa_labels, "Amino Profile", "#48BB78"), use_container_width=True)
+            st.markdown("#### Amino Acid Profile (mg/g N)")
+            st.info("Values are generally expressed in mg per gram of Nitrogen.")
+            
+            eaa_keys = {
+                'Histidine': 'his', 'Isoleucine': 'ile', 'Leucine': 'leu', 'Lysine': 'lys', 
+                'Methionine': 'met', 'Phenylalanine': 'phe', 'Threonine': 'thr', 'Tryptophan': 'trp', 'Valine': 'val'
+            }
+            naa_keys = {
+                'Alanine': 'ala', 'Arginine': 'arg', 'Aspartic Acid': 'asp', 'Cystine': 'cys', 
+                'Glutamic Acid': 'glu', 'Glycine': 'gly', 'Proline': 'pro', 'Serine': 'ser', 'Tyrosine': 'tyr'
+            }
+            
+            c_eaa, c_naa = st.columns(2)
+            
+            with c_eaa:
+                st.markdown("##### Essential Amino Acids")
+                eaa_vals = [item.get(v, 0) for v in eaa_keys.values()]
+                st.plotly_chart(plot_radar(eaa_vals, list(eaa_keys.keys()), "Essential", "#48BB78"), use_container_width=True)
+                
+                eaa_data = [{"Amino Acid": k, "Value (mg)": format_val(item, v, "")} for k, v in eaa_keys.items()]
+                st.dataframe(pd.DataFrame(eaa_data), hide_index=True, use_container_width=True)
+
+            with c_naa:
+                st.markdown("##### Non-Essential / Conditionally Essential")
+                naa_vals = [item.get(v, 0) for v in naa_keys.values()]
+                st.plotly_chart(plot_radar(naa_vals, list(naa_keys.keys()), "Non-Essential", "#4299E1"), use_container_width=True)
+                
+                naa_data = [{"Amino Acid": k, "Value (mg)": format_val(item, v, "")} for k, v in naa_keys.items()]
+                st.dataframe(pd.DataFrame(naa_data), hide_index=True, use_container_width=True)
 
         # --- TAB 8: BIOACTIVES ---
         with tabs[7]:
