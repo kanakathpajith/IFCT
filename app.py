@@ -243,7 +243,7 @@ if not df.empty:
                     "Value (g)": [format_val(item, 'starch'), format_val(item, 'fsugar')]
                 }), hide_index=True, use_container_width=True)
 
-        # --- TAB 2: MINERALS (With Error Bars) ---
+        # --- TAB 2: MINERALS (Expanded with all IFCT elements & Error Bars) ---
         with tabs[1]:
             st.write("")
             c1, c2 = st.columns(2)
@@ -257,16 +257,32 @@ if not df.empty:
                 fig_macro.update_traces(marker_color='#E6C27A' if "Dark" in theme_choice else '#B45309', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
                 fig_macro.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font))
                 st.plotly_chart(fig_macro, use_container_width=True)
+                
+                # Added Heavy Metals Chart
+                st.markdown("#### Heavy & Other Metals")
+                heavy_keys = {"Aluminum": 'al', "Arsenic": 'as', "Cadmium": 'cd', "Lead": 'pb', "Mercury": 'hg'}
+                hy_vals = [item.get(k, 0) for k in heavy_keys.values()]
+                he_vals = [item.get(f"{k}_e", 0) for k in heavy_keys.values()]
+                
+                fig_heavy = px.bar(x=list(heavy_keys.keys()), y=hy_vals, error_y=he_vals, text_auto='.2s')
+                fig_heavy.update_traces(marker_color='#718096', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+                fig_heavy.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font))
+                st.plotly_chart(fig_heavy, use_container_width=True)
             
             with c2:
-                st.markdown("#### Trace Elements (mg)")
-                trace_keys = {"Iron": 'fe', "Zinc": 'zn', "Copper": 'cu', "Manganese": 'mn'}
+                # Expanded Trace Elements
+                st.markdown("#### Trace Elements")
+                trace_keys = {
+                    "Iron": 'fe', "Zinc": 'zn', "Copper": 'cu', "Manganese": 'mn',
+                    "Selenium": 'se', "Chromium": 'cr', "Molybdenum": 'mo',
+                    "Cobalt": 'co', "Nickel": 'ni', "Lithium": 'li'
+                }
                 ty_vals = [item.get(k, 0) for k in trace_keys.values()]
                 te_vals = [item.get(f"{k}_e", 0) for k in trace_keys.values()]
                 
                 fig_trace = px.bar(x=list(trace_keys.keys()), y=ty_vals, error_y=te_vals, text_auto='.2s')
-                fig_trace.update_traces(marker_color='#4299E1', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
-                fig_trace.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font))
+                fig_trace.update_traces(marker_color='#4299E1', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_trace.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font), height=550)
                 st.plotly_chart(fig_trace, use_container_width=True)
 
         # --- TAB 3: VITAMINS ---
