@@ -16,7 +16,7 @@ st.set_page_config(
 # Custom Theme
 st.markdown("""
 <style>
-    .stApp { background-color: #0E1117; color: #FAFAFA; font-family: 'Inter', sans-serif; }
+    .stApp { background-color: #c6c1fe; color: #ffbe12; font-family: 'Inter', sans-serif; }
     h1, h2, h3 { color: #D4AF37 !important; }
     div[data-testid="stMetric"] { background-color: #1E1E1E; border: 1px solid #333; border-radius: 8px; }
     div[data-testid="stMetricLabel"] { color: #888; }
@@ -230,4 +230,5 @@ if not df.empty:
                 st.markdown("#### Anti-Nutrients")
                 st.metric("Phytate", f"{item.get('phytac', 0)} mg")
                 st.metric("Total Oxalates", f"{item.get('oxalt', 0)} mg")
+
                 st.metric("Saponins", f"{item.get('sapon', 0)} mg")
