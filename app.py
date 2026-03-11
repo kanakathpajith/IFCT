@@ -197,7 +197,7 @@ if not df.empty:
         
         st.markdown("---")
 
-        tabs = st.tabs(["🍽️ Proximates & Fibre", "💎 Minerals", "💊 Vitamins", "💧 Fats", "🧬 Amino Acids", "🌿 Bioactives"])
+        tabs = st.tabs(["🍽️ Proximates & Fibre", "💎 Minerals", "💊 Vitamins", "💧 Fats", "🧬 Amino Acids", "🌿 Bioactives", "🥕 Carotenoids"])
 
         # --- TAB 1: PROXIMATES & FIBRE ---
         with tabs[0]:
@@ -243,7 +243,7 @@ if not df.empty:
                     "Value (g)": [format_val(item, 'starch'), format_val(item, 'fsugar')]
                 }), hide_index=True, use_container_width=True)
 
-        # --- TAB 2: MINERALS (Expanded with all IFCT elements & Error Bars) ---
+        # --- TAB 2: MINERALS ---
         with tabs[1]:
             st.write("")
             c1, c2 = st.columns(2)
@@ -258,7 +258,6 @@ if not df.empty:
                 fig_macro.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font))
                 st.plotly_chart(fig_macro, use_container_width=True)
                 
-                # Added Heavy Metals Chart
                 st.markdown("#### Heavy & Other Metals")
                 heavy_keys = {"Aluminum": 'al', "Arsenic": 'as', "Cadmium": 'cd', "Lead": 'pb', "Mercury": 'hg'}
                 hy_vals = [item.get(k, 0) for k in heavy_keys.values()]
@@ -270,7 +269,6 @@ if not df.empty:
                 st.plotly_chart(fig_heavy, use_container_width=True)
             
             with c2:
-                # Expanded Trace Elements
                 st.markdown("#### Trace Elements")
                 trace_keys = {
                     "Iron": 'fe', "Zinc": 'zn', "Copper": 'cu', "Manganese": 'mn',
@@ -348,3 +346,35 @@ if not df.empty:
                 st.metric("Phytate", format_val(item, 'phytac', 'mg'))
                 st.metric("Total Oxalates", format_val(item, 'oxalt', 'mg'))
                 st.metric("Saponins", format_val(item, 'sapon', 'mg'))
+
+        # --- TAB 7: CAROTENOIDS ---
+        with tabs[6]:
+            st.write("")
+            c1, c2 = st.columns([1, 1.5])
+            with c1:
+                st.markdown("#### Total Carotenoids")
+                st.metric("Total Carotenoids", format_val(item, 'cartoid', 'µg'))
+                
+                st.markdown("#### Key Provitamin A")
+                st.metric("Beta-Carotene", format_val(item, 'cartb', 'µg'))
+                st.metric("Alpha-Carotene", format_val(item, 'carta', 'µg'))
+                st.metric("Beta-Cryptoxanthin", format_val(item, 'crypxb', 'µg'))
+                
+            with c2:
+                st.markdown("#### Carotenoid Profile (µg)")
+                carot_keys = {
+                    "Lutein": 'lutn', 
+                    "Zeaxanthin": 'zea', 
+                    "Lycopene": 'lycpn', 
+                    "Gamma-Carotene": 'cartg',
+                    "Alpha-Carotene": 'carta',
+                    "Beta-Carotene": 'cartb',
+                    "Beta-Cryptoxanthin": 'crypxb'
+                }
+                cy_vals = [item.get(k, 0) for k in carot_keys.values()]
+                ce_vals = [item.get(f"{k}_e", 0) for k in carot_keys.values()]
+                
+                fig_carot = px.bar(x=list(carot_keys.keys()), y=cy_vals, error_y=ce_vals, text_auto='.2s')
+                fig_carot.update_traces(marker_color='#ED8936', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_carot.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="µg", font=dict(color=chart_font), height=450)
+                st.plotly_chart(fig_carot, use_container_width=True)
