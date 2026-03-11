@@ -265,13 +265,9 @@ if not df.empty:
             with c2:
                 st.markdown("#### Individual Sugars (g)")
                 sugars = {
-                    "Fructose": 'frus', 
-                    "Glucose": 'glus', 
-                    "Sucrose": 'sucs', 
-                    "Maltose": 'mals',
-                    "Lactose": 'lactose'
+                    "Fructose": 'frus', "Glucose": 'glus', "Sucrose": 'sucs', 
+                    "Maltose": 'mals', "Lactose": 'lactose'
                 }
-                
                 sy_vals = [item.get(v, 0) for v in sugars.values()]
                 se_vals = [item.get(f"{v}_e", 0) for v in sugars.values()]
                 
@@ -333,11 +329,8 @@ if not df.empty:
             with c2:
                 st.markdown("#### B-Complex Profile")
                 b_vits = {
-                    "Thiamine (B1)": 'thia', 
-                    "Riboflavin (B2)": 'ribf', 
-                    "Niacin (B3)": 'nia', 
-                    "Pantothenic Acid (B5)": 'pantac',
-                    "Total B6": 'vitb6c'
+                    "Thiamine (B1)": 'thia', "Riboflavin (B2)": 'ribf', "Niacin (B3)": 'nia', 
+                    "Pantothenic Acid (B5)": 'pantac', "Total B6": 'vitb6c'
                 }
                 by_vals = [item.get(v, 0) for v in b_vits.values()]
                 be_vals = [item.get(f"{v}_e", 0) for v in b_vits.values()]
@@ -393,34 +386,30 @@ if not df.empty:
             with c_sfa:
                 st.markdown("#### Saturated Fatty Acids (g)")
                 sfa_keys = {
-                    "Capric (10:0)": 'f10d0', "Undecanoic (11:0)": 'f11d0', "Lauric (12:0)": 'f12d0',
-                    "Myristic (14:0)": 'f14d0', "Pentadecanoic (15:0)": 'f15d0', "Palmitic (16:0)": 'f16d0',
-                    "Stearic (18:0)": 'f18d0', "Arachidic (20:0)": 'f20d0', "Behenic (22:0)": 'f22d0',
-                    "Lignoceric (24:0)": 'f24d0'
+                    "Capric": 'f10d0', "Undecanoic": 'f11d0', "Lauric": 'f12d0',
+                    "Myristic": 'f14d0', "Pentadecanoic": 'f15d0', "Palmitic": 'f16d0',
+                    "Stearic": 'f18d0', "Arachidic": 'f20d0', "Behenic": 'f22d0',
+                    "Lignoceric": 'f24d0'
                 }
-                sy_vals = [item.get(k, 0) for k in sfa_keys.values()]
-                se_vals = [item.get(f"{k}_e", 0) for k in sfa_keys.values()]
+                sfa_vals = [item.get(v, 0) for v in sfa_keys.values()]
+                st.plotly_chart(plot_radar(sfa_vals, list(sfa_keys.keys()), "SFA Profile", "#F56565"), use_container_width=True)
                 
-                fig_sfa = px.bar(x=list(sfa_keys.keys()), y=sy_vals, error_y=se_vals, text_auto='.2s')
-                fig_sfa.update_traces(marker_color='#F56565', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
-                fig_sfa.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=450, margin=dict(t=30, b=100))
-                st.plotly_chart(fig_sfa, use_container_width=True)
+                sfa_data = [{"Fatty Acid": k, "Value (g)": format_val(item, v, "")} for k, v in sfa_keys.items()]
+                st.dataframe(pd.DataFrame(sfa_data), hide_index=True, use_container_width=True)
             
             with c_ufa:
                 st.markdown("#### Unsaturated Fatty Acids (g)")
                 ufa_keys = {
-                    "Myristoleic (14:1)": 'f14d1cn5', "Palmitoleic (16:1)": 'f16d1cn7', "Oleic (18:1)": 'f18d1cn9',
-                    "Eicosenoic (20:1)": 'f20d1cn9', "Erucic (22:1)": 'f22d1cn9', "Nervonic (24:1)": 'f24d1cn9',
-                    "Linoleic (18:2)": 'f18d2cn6', "ALA (18:3 n-3)": 'f18d3n3', "Eicosadienoic (20:2)": 'f20d2n6',
-                    "Arachidonic (20:4)": 'f20d4n6', "EPA (20:5 n-3)": 'f20d5n3'
+                    "Myristoleic": 'f14d1cn5', "Palmitoleic": 'f16d1cn7', "Oleic": 'f18d1cn9',
+                    "Eicosenoic": 'f20d1cn9', "Erucic": 'f22d1cn9', "Nervonic": 'f24d1cn9',
+                    "Linoleic": 'f18d2cn6', "ALA": 'f18d3n3', "Eicosadienoic": 'f20d2n6',
+                    "Arachidonic": 'f20d4n6', "EPA": 'f20d5n3'
                 }
-                uy_vals = [item.get(k, 0) for k in ufa_keys.values()]
-                ue_vals = [item.get(f"{k}_e", 0) for k in ufa_keys.values()]
+                ufa_vals = [item.get(v, 0) for v in ufa_keys.values()]
+                st.plotly_chart(plot_radar(ufa_vals, list(ufa_keys.keys()), "UFA Profile", "#48BB78"), use_container_width=True)
                 
-                fig_ufa = px.bar(x=list(ufa_keys.keys()), y=uy_vals, error_y=ue_vals, text_auto='.2s')
-                fig_ufa.update_traces(marker_color='#48BB78', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
-                fig_ufa.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=450, margin=dict(t=30, b=100))
-                st.plotly_chart(fig_ufa, use_container_width=True)
+                ufa_data = [{"Fatty Acid": k, "Value (g)": format_val(item, v, "")} for k, v in ufa_keys.items()]
+                st.dataframe(pd.DataFrame(ufa_data), hide_index=True, use_container_width=True)
 
         # --- TAB 7: AMINO ACIDS ---
         with tabs[6]:
@@ -488,13 +477,9 @@ if not df.empty:
             with c2:
                 st.markdown("#### Carotenoid Profile (µg)")
                 carot_keys = {
-                    "Lutein": 'lutn', 
-                    "Zeaxanthin": 'zea', 
-                    "Lycopene": 'lycpn', 
-                    "Gamma-Carotene": 'cartg',
-                    "Alpha-Carotene": 'carta',
-                    "Beta-Carotene": 'cartb',
-                    "Beta-Cryptoxanthin": 'crypxb'
+                    "Lutein": 'lutn', "Zeaxanthin": 'zea', "Lycopene": 'lycpn', 
+                    "Gamma-Carotene": 'cartg', "Alpha-Carotene": 'carta',
+                    "Beta-Carotene": 'cartb', "Beta-Cryptoxanthin": 'crypxb'
                 }
                 cy_vals = [item.get(k, 0) for k in carot_keys.values()]
                 ce_vals = [item.get(f"{k}_e", 0) for k in carot_keys.values()]
