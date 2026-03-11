@@ -277,4 +277,219 @@ if not df.empty:
                 
                 fig_sugars = px.bar(x=list(sugars.keys()), y=sy_vals, error_y=se_vals, text_auto='.2s')
                 fig_sugars.update_traces(marker_color='#9F7AEA', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
-                fig_sugars.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=
+                fig_sugars.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=400, margin=dict(t=30, b=50))
+                st.plotly_chart(fig_sugars, use_container_width=True)
+
+        # --- TAB 3: MINERALS ---
+        with tabs[2]:
+            st.write("")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown("#### Macro Minerals (mg)")
+                mins_keys = {"Calcium": 'ca', "Magnesium": 'mg', "Phosphorus": 'p', "Sodium": 'na', "Potassium": 'k'}
+                y_vals = [item.get(k, 0) for k in mins_keys.values()]
+                e_vals = [item.get(f"{k}_e", 0) for k in mins_keys.values()]
+                
+                fig_macro = px.bar(x=list(mins_keys.keys()), y=y_vals, error_y=e_vals, text_auto='.2s')
+                fig_macro.update_traces(marker_color='#E6C27A' if "Dark" in theme_choice else '#B45309', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+                fig_macro.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), margin=dict(t=30, b=50))
+                st.plotly_chart(fig_macro, use_container_width=True)
+                
+                st.markdown("#### Heavy & Other Metals")
+                heavy_keys = {"Aluminum": 'al', "Arsenic": 'as', "Cadmium": 'cd', "Lead": 'pb', "Mercury": 'hg'}
+                hy_vals = [item.get(k, 0) for k in heavy_keys.values()]
+                he_vals = [item.get(f"{k}_e", 0) for k in heavy_keys.values()]
+                
+                fig_heavy = px.bar(x=list(heavy_keys.keys()), y=hy_vals, error_y=he_vals, text_auto='.2s')
+                fig_heavy.update_traces(marker_color='#718096', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+                fig_heavy.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font), margin=dict(t=30, b=50))
+                st.plotly_chart(fig_heavy, use_container_width=True)
+            
+            with c2:
+                st.markdown("#### Trace Elements")
+                trace_keys = {
+                    "Iron": 'fe', "Zinc": 'zn', "Copper": 'cu', "Manganese": 'mn',
+                    "Selenium": 'se', "Chromium": 'cr', "Molybdenum": 'mo',
+                    "Cobalt": 'co', "Nickel": 'ni', "Lithium": 'li'
+                }
+                ty_vals = [item.get(k, 0) for k in trace_keys.values()]
+                te_vals = [item.get(f"{k}_e", 0) for k in trace_keys.values()]
+                
+                fig_trace = px.bar(x=list(trace_keys.keys()), y=ty_vals, error_y=te_vals, text_auto='.2s')
+                fig_trace.update_traces(marker_color='#4299E1', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_trace.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font), height=550, margin=dict(t=30, b=80))
+                st.plotly_chart(fig_trace, use_container_width=True)
+
+        # --- TAB 4: WATER SOLUBLE VITAMINS ---
+        with tabs[3]:
+            st.write("")
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                st.markdown("#### Vitamin C & Others")
+                st.metric("Total Vitamin C", format_val(item, 'vitc', 'mg'))
+                st.metric("Total Folates", format_val(item, 'folsum', 'µg'))
+                st.metric("Biotin (B7)", format_val(item, 'biot', 'µg'))
+                
+            with c2:
+                st.markdown("#### B-Complex Profile")
+                b_vits = {
+                    "Thiamine (B1)": 'thia', 
+                    "Riboflavin (B2)": 'ribf', 
+                    "Niacin (B3)": 'nia', 
+                    "Pantothenic Acid (B5)": 'pantac',
+                    "Total B6": 'vitb6c'
+                }
+                by_vals = [item.get(v, 0) for v in b_vits.values()]
+                be_vals = [item.get(f"{v}_e", 0) for v in b_vits.values()]
+                
+                fig_b = px.bar(x=list(b_vits.keys()), y=by_vals, error_y=be_vals, text_auto='.2s')
+                fig_b.update_traces(marker_color='#68D391', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_b.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=350, margin=dict(t=30, b=80))
+                st.plotly_chart(fig_b, use_container_width=True)
+
+        # --- TAB 5: FAT SOLUBLE VITAMINS ---
+        with tabs[4]:
+            st.write("")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Retinol (Vit A)", format_val(item, 'retol', 'µg'))
+            c2.metric("Ergocalciferol (D2)", format_val(item, 'ergcal', 'µg'))
+            c3.metric("Cholecalciferol (D3)", format_val(item, 'chocal', 'µg'))
+            
+            st.write("")
+            c4, c5, c6 = st.columns(3)
+            c4.metric("Total Vitamin E", format_val(item, 'vite', 'mg'))
+            c5.metric("Phylloquinones (K1)", format_val(item, 'vitk1', 'µg'))
+            c6.metric("Menaquinones (K2)", format_val(item, 'vitk2', 'µg'))
+            
+            st.markdown("---")
+            st.markdown("#### Vitamin E Profile (mg)")
+            
+            vit_e_keys = {
+                "α-Tocopherol": 'tocpha', "β-Tocopherol": 'tocphb', "γ-Tocopherol": 'tocphg', "δ-Tocopherol": 'tocphd',
+                "α-Tocotrienol": 'toctra', "β-Tocotrienol": 'toctrb', "γ-Tocotrienol": 'toctrg', "δ-Tocotrienol": 'toctrd'
+            }
+            ey_vals = [item.get(k, 0) for k in vit_e_keys.values()]
+            ee_vals = [item.get(f"{k}_e", 0) for k in vit_e_keys.values()]
+            
+            fig_vite = px.bar(x=list(vit_e_keys.keys()), y=ey_vals, error_y=ee_vals, text_auto='.2s')
+            fig_vite.update_traces(marker_color='#F6E05E', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+            fig_vite.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=400, margin=dict(t=30, b=80))
+            st.plotly_chart(fig_vite, use_container_width=True)
+
+        # --- TAB 6: FATS & LIPIDS ---
+        with tabs[5]:
+            st.write("")
+            
+            # Top-Level Lipids Metrics
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Saturated (SFA)", format_val(item, 'fasat', 'g'))
+            c2.metric("Monounsat (MUFA)", format_val(item, 'fams', 'g'))
+            c3.metric("Polyunsat (PUFA)", format_val(item, 'fapu', 'g'))
+            c4.metric("Cholesterol", format_val(item, 'cholc', 'mg'))
+            
+            st.markdown("---")
+            
+            c_sfa, c_ufa = st.columns(2)
+            
+            with c_sfa:
+                st.markdown("#### Saturated Fatty Acids (g)")
+                sfa_keys = {
+                    "Capric (10:0)": 'f10d0',
+                    "Undecanoic (11:0)": 'f11d0',
+                    "Lauric (12:0)": 'f12d0',
+                    "Myristic (14:0)": 'f14d0',
+                    "Pentadecanoic (15:0)": 'f15d0',
+                    "Palmitic (16:0)": 'f16d0',
+                    "Stearic (18:0)": 'f18d0',
+                    "Arachidic (20:0)": 'f20d0',
+                    "Behenic (22:0)": 'f22d0',
+                    "Lignoceric (24:0)": 'f24d0'
+                }
+                sy_vals = [item.get(k, 0) for k in sfa_keys.values()]
+                se_vals = [item.get(f"{k}_e", 0) for k in sfa_keys.values()]
+                
+                fig_sfa = px.bar(x=list(sfa_keys.keys()), y=sy_vals, error_y=se_vals, text_auto='.2s')
+                fig_sfa.update_traces(marker_color='#F56565', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_sfa.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=450, margin=dict(t=30, b=100))
+                st.plotly_chart(fig_sfa, use_container_width=True)
+            
+            with c_ufa:
+                st.markdown("#### Unsaturated Fatty Acids (g)")
+                ufa_keys = {
+                    "Myristoleic (14:1)": 'f14d1cn5',
+                    "Palmitoleic (16:1)": 'f16d1cn7',
+                    "Oleic (18:1)": 'f18d1cn9',
+                    "Eicosenoic (20:1)": 'f20d1cn9',
+                    "Erucic (22:1)": 'f22d1cn9',
+                    "Nervonic (24:1)": 'f24d1cn9',
+                    "Linoleic (18:2)": 'f18d2cn6',
+                    "ALA (18:3 n-3)": 'f18d3n3',
+                    "Eicosadienoic (20:2)": 'f20d2n6',
+                    "Arachidonic (20:4)": 'f20d4n6',
+                    "EPA (20:5 n-3)": 'f20d5n3'
+                }
+                uy_vals = [item.get(k, 0) for k in ufa_keys.values()]
+                ue_vals = [item.get(f"{k}_e", 0) for k in ufa_keys.values()]
+                
+                fig_ufa = px.bar(x=list(ufa_keys.keys()), y=uy_vals, error_y=ue_vals, text_auto='.2s')
+                fig_ufa.update_traces(marker_color='#48BB78', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_ufa.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=450, margin=dict(t=30, b=100))
+                st.plotly_chart(fig_ufa, use_container_width=True)
+
+        # --- TAB 7: AMINO ACIDS ---
+        with tabs[6]:
+            st.write("")
+            st.markdown("#### Essential Amino Acids (mg/g N)")
+            aa_labels = ["Arg", "His", "Ile", "Leu", "Lys", "Met", "Phe", "Thr", "Trp", "Val"]
+            aa_keys = ['arg', 'his', 'ile', 'leu', 'lys', 'met', 'phe', 'thr', 'trp', 'val']
+            aa_values = [item.get(k, 0) for k in aa_keys]
+            st.plotly_chart(plot_radar(aa_values, aa_labels, "Amino Profile", "#48BB78"), use_container_width=True)
+
+        # --- TAB 8: BIOACTIVES ---
+        with tabs[7]:
+            st.write("")
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown("#### Polyphenols & Antioxidants")
+                st.metric("Total Polyphenols", format_val(item, 'polyph', 'mg'))
+                st.markdown("##### Specific Phenolics")
+                st.markdown(f"**Gallic Acid:** <span style='color:var(--text-muted);'>{format_val(item, 'gallac', 'mg')}</span>", unsafe_allow_html=True)
+                st.markdown(f"**Quercetin:** <span style='color:var(--text-muted);'>{format_val(item, 'querce', 'mg')}</span>", unsafe_allow_html=True)
+            
+            with c2:
+                st.markdown("#### Anti-Nutrients")
+                st.metric("Phytate", format_val(item, 'phytac', 'mg'))
+                st.metric("Total Oxalates", format_val(item, 'oxalt', 'mg'))
+                st.metric("Saponins", format_val(item, 'sapon', 'mg'))
+
+        # --- TAB 9: CAROTENOIDS ---
+        with tabs[8]:
+            st.write("")
+            c1, c2 = st.columns([1, 1.5])
+            with c1:
+                st.markdown("#### Total Carotenoids")
+                st.metric("Total Carotenoids", format_val(item, 'cartoid', 'µg'))
+                
+                st.markdown("#### Key Provitamin A")
+                st.metric("Beta-Carotene", format_val(item, 'cartb', 'µg'))
+                st.metric("Alpha-Carotene", format_val(item, 'carta', 'µg'))
+                st.metric("Beta-Cryptoxanthin", format_val(item, 'crypxb', 'µg'))
+                
+            with c2:
+                st.markdown("#### Carotenoid Profile (µg)")
+                carot_keys = {
+                    "Lutein": 'lutn', 
+                    "Zeaxanthin": 'zea', 
+                    "Lycopene": 'lycpn', 
+                    "Gamma-Carotene": 'cartg',
+                    "Alpha-Carotene": 'carta',
+                    "Beta-Carotene": 'cartb',
+                    "Beta-Cryptoxanthin": 'crypxb'
+                }
+                cy_vals = [item.get(k, 0) for k in carot_keys.values()]
+                ce_vals = [item.get(f"{k}_e", 0) for k in carot_keys.values()]
+                
+                fig_carot = px.bar(x=list(carot_keys.keys()), y=cy_vals, error_y=ce_vals, text_auto='.2s')
+                fig_carot.update_traces(marker_color='#ED8936', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_carot.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="µg", font=dict(color=chart_font), height=450, margin=dict(t=30, b=80))
+                st.plotly_chart(fig_carot, use_container_width=True)
