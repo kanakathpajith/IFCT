@@ -196,9 +196,9 @@ if not df.empty:
         st.markdown("---")
 
         tabs = st.tabs([
-            "🍽️ Proximates & Fibre", "💎 Minerals", "💧 Water Soluble Vits", 
-            "🛢️ Fat Soluble Vits", "🥑 Fats & Lipids", "🧬 Amino Acids", 
-            "🌿 Bioactives", "🥕 Carotenoids"
+            "🍽️ Proximates & Fibre", "🍬 Starch & Sugars", "💎 Minerals", 
+            "💧 Water Soluble Vits", "🛢️ Fat Soluble Vits", "🥑 Fats & Lipids", 
+            "🧬 Amino Acids", "🌿 Bioactives", "🥕 Carotenoids"
         ])
 
         # --- TAB 1: PROXIMATES & FIBRE ---
@@ -224,8 +224,8 @@ if not df.empty:
             fc3.metric("Soluble Fibre", format_val(item, 'fibsol', 'g'))
 
             st.markdown("<br>", unsafe_allow_html=True)
-            col_chart, col_details = st.columns([1.2, 1])
-            with col_chart:
+            c_left, c_chart, c_right = st.columns([1, 2, 1])
+            with c_chart:
                 fig = px.pie(
                     names=['Protein', 'Carbohydrates', 'Fat', 'Moisture', 'Ash'],
                     values=[item.get('protcnt', 0), item.get('choavldf', 0), item.get('fatce', 0), item.get('water', 0), item.get('ash', 0)],
@@ -237,16 +237,37 @@ if not df.empty:
                 fig.update_layout(showlegend=False, paper_bgcolor=chart_bg, font=dict(color=chart_font), margin=dict(t=10, b=10, l=10, r=10), height=350)
                 fig.add_annotation(text="Proximates", x=0.5, y=0.5, font_size=18, showarrow=False, font_color=chart_font)
                 st.plotly_chart(fig, use_container_width=True)
-            
-            with col_details:
-                st.markdown("#### Other Carbohydrates")
-                st.dataframe(pd.DataFrame({
-                    "Component": ["Starch", "Total Sugars"],
-                    "Value (g)": [format_val(item, 'starch'), format_val(item, 'fsugar')]
-                }), hide_index=True, use_container_width=True)
 
-        # --- TAB 2: MINERALS ---
+        # --- TAB 2: STARCH & SUGARS ---
         with tabs[1]:
+            st.write("")
+            c1, c2 = st.columns([1, 1.2])
+            with c1:
+                st.markdown("#### Starch & Available CHO")
+                st.metric("Total Available CHO", format_val(item, 'choavldf', 'g'))
+                st.metric("Total Starch", format_val(item, 'starch', 'g'))
+                st.metric("Total Free Sugars", format_val(item, 'fsugar', 'g'))
+                
+            with c2:
+                st.markdown("#### Individual Sugars (g)")
+                sugars = {
+                    "Fructose": 'frus', 
+                    "Glucose": 'glus', 
+                    "Sucrose": 'sucs', 
+                    "Maltose": 'mals',
+                    "Lactose": 'lactose'
+                }
+                
+                sy_vals = [item.get(v, 0) for v in sugars.values()]
+                se_vals = [item.get(f"{v}_e", 0) for v in sugars.values()]
+                
+                fig_sugars = px.bar(x=list(sugars.keys()), y=sy_vals, error_y=se_vals, text_auto='.2s')
+                fig_sugars.update_traces(marker_color='#9F7AEA', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
+                fig_sugars.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=400)
+                st.plotly_chart(fig_sugars, use_container_width=True)
+
+        # --- TAB 3: MINERALS ---
+        with tabs[2]:
             st.write("")
             c1, c2 = st.columns(2)
             with c1:
@@ -285,8 +306,8 @@ if not df.empty:
                 fig_trace.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font), height=550)
                 st.plotly_chart(fig_trace, use_container_width=True)
 
-        # --- TAB 3: WATER SOLUBLE VITAMINS ---
-        with tabs[2]:
+        # --- TAB 4: WATER SOLUBLE VITAMINS ---
+        with tabs[3]:
             st.write("")
             c1, c2 = st.columns([1, 1])
             with c1:
@@ -312,8 +333,8 @@ if not df.empty:
                 fig_b.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=350)
                 st.plotly_chart(fig_b, use_container_width=True)
 
-        # --- TAB 4: FAT SOLUBLE VITAMINS ---
-        with tabs[3]:
+        # --- TAB 5: FAT SOLUBLE VITAMINS ---
+        with tabs[4]:
             st.write("")
             c1, c2, c3 = st.columns(3)
             c1.metric("Retinol (Vit A)", format_val(item, 'retol', 'µg'))
@@ -341,8 +362,8 @@ if not df.empty:
             fig_vite.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, yaxis=dict(showgrid=True, gridcolor=chart_grid), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=400)
             st.plotly_chart(fig_vite, use_container_width=True)
 
-        # --- TAB 5: FATS & LIPIDS ---
-        with tabs[4]:
+        # --- TAB 6: FATS & LIPIDS ---
+        with tabs[5]:
             st.write("")
             c1, c2 = st.columns(2)
             with c1:
@@ -355,8 +376,8 @@ if not df.empty:
                 st.metric("Cholesterol", format_val(item, 'cholc', 'mg'))
                 st.metric("Omega-3 (ALA)", format_val(item, 'ala', 'mg'))
 
-        # --- TAB 6: AMINO ACIDS ---
-        with tabs[5]:
+        # --- TAB 7: AMINO ACIDS ---
+        with tabs[6]:
             st.write("")
             st.markdown("#### Essential Amino Acids (mg/g N)")
             aa_labels = ["Arg", "His", "Ile", "Leu", "Lys", "Met", "Phe", "Thr", "Trp", "Val"]
@@ -364,8 +385,8 @@ if not df.empty:
             aa_values = [item.get(k, 0) for k in aa_keys]
             st.plotly_chart(plot_radar(aa_values, aa_labels, "Amino Profile", "#48BB78"), use_container_width=True)
 
-        # --- TAB 7: BIOACTIVES ---
-        with tabs[6]:
+        # --- TAB 8: BIOACTIVES ---
+        with tabs[7]:
             st.write("")
             c1, c2 = st.columns(2)
             with c1:
@@ -381,8 +402,8 @@ if not df.empty:
                 st.metric("Total Oxalates", format_val(item, 'oxalt', 'mg'))
                 st.metric("Saponins", format_val(item, 'sapon', 'mg'))
 
-        # --- TAB 8: CAROTENOIDS ---
-        with tabs[7]:
+        # --- TAB 9: CAROTENOIDS ---
+        with tabs[8]:
             st.write("")
             c1, c2 = st.columns([1, 1.5])
             with c1:
