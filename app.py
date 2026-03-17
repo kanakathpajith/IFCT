@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import math
+import os
 
 # -----------------------------------------------------------------------------
 # 1. CONFIGURATION
@@ -90,6 +91,13 @@ st.markdown(f"""
         overflow-wrap: break-word; 
     }}
     
+    /* Image Styling */
+    img {{
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }}
+    
     .stTabs [data-baseweb="tab-list"] {{ gap: 8px; background-color: transparent; padding-bottom: 5px; flex-wrap: wrap; }}
     .stTabs [data-baseweb="tab"] {{ background: var(--card-bg); border-radius: 6px; padding: 10px 24px; border: 1px solid var(--border-color); color: var(--text-muted); white-space: nowrap; }}
     .stTabs [aria-selected="true"] {{ background-color: var(--accent-color) !important; color: #FFFFFF !important; font-weight: 700; border-color: var(--accent-color); }}
@@ -144,20 +152,6 @@ def format_val(item, col, unit=""):
         return f"{val_str} ± {err_str} {unit}".strip()
     return f"{val_str} {unit}".strip()
 
-def format_sum_val(item, cols, unit=""):
-    val = sum(item.get(c, 0) for c in cols)
-    err = math.sqrt(sum(item.get(f"{c}_e", 0)**2 for c in cols))
-    
-    if isinstance(val, float): val = round(val, 2)
-    if isinstance(err, float): err = round(err, 2)
-    
-    val_str = f"{int(val)}" if val == int(val) else f"{val}"
-    err_str = f"{int(err)}" if err == int(err) else f"{err}"
-    
-    if err and float(err) != 0:
-        return f"{val_str} ± {err_str} {unit}".strip()
-    return f"{val_str} {unit}".strip()
-
 def plot_radar(values, labels, title, color):
     fig = go.Figure()
     fig.add_trace(go.Scatterpolar(
@@ -199,12 +193,38 @@ if not df.empty:
     if selected_item:
         item = df[df['name'] == selected_item].iloc[0]
         
-        # Header
-        c1, c2 = st.columns([3, 1])
-        with c1:
+        # Header with Image Integration
+        c_img, c_text, c_metric = st.columns([1, 3, 1])
+        
+        with c_img:
+            img_code = str(item.get('code', '')).strip()
+            jpg_path = os.path.join("images", f"{img_code}.jpg")
+            png_path = os.path.join("images", f"{img_code}.png")
+            jpeg_path = os.path.join("images", f"{img_code}.jpeg")
+            
+            if os.path.exists(jpg_path):
+                st.image(jpg_path, use_container_width=True)
+            elif os.path.exists(png_path):
+                st.image(png_path, use_container_width=True)
+            elif os.path.exists(jpeg_path):
+                st.image(jpeg_path, use_container_width=True)
+            else:
+                # Beautiful Placeholder for missing images
+                st.markdown(f"""
+                <div style='height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+                            background: var(--card-bg); border-radius: 12px; border: 1px dashed var(--border-color); 
+                            color: var(--text-muted); font-size: 0.9rem;'>
+                    <span style='font-size: 1.5rem;'>📸</span>
+                    No Image
+                </div>
+                """, unsafe_allow_html=True)
+                
+        with c_text:
             st.title(item['name'])
             st.markdown(f"<span style='color:var(--text-muted); font-size:1.1rem;'><i>{item['scie']}</i> • {item['regn']}</span>", unsafe_allow_html=True)
-        with c2:
+            st.caption(f"**IFCT Code:** {item['code']}")
+            
+        with c_metric:
             st.metric("Total Energy", format_val(item, 'enerc', 'kcal'))
         
         st.markdown("---")
