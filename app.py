@@ -80,21 +80,25 @@ st.markdown(f"""
         overflow: hidden;
     }}
     div[data-testid="stMetric"]:hover {{ transform: translateY(-3px); border-color: var(--accent-color); }}
+    
     div[data-testid="stMetricLabel"] {{ 
         color: var(--text-muted) !important; 
         font-size: 0.85rem; 
         font-weight: 500; 
         margin-bottom: 4px; 
-        white-space: normal; 
-        word-wrap: break-word;
+        white-space: normal !important; 
+        word-wrap: break-word !important;
     }}
-    div[data-testid="stMetricValue"] {{ 
+    
+    /* Aggressively target Streamlit's inner hidden divs to force text wrapping */
+    div[data-testid="stMetricValue"], div[data-testid="stMetricValue"] > div {{ 
         color: var(--text-primary) !important; 
-        font-size: 1.25rem; 
+        font-size: 1.2rem !important; 
         font-weight: 700; 
-        line-height: 1.3;
-        white-space: normal; 
-        word-wrap: break-word;
+        line-height: 1.2;
+        white-space: normal !important; 
+        word-wrap: break-word !important; 
+        overflow-wrap: break-word !important;
     }}
     
     /* Image Styling */
@@ -232,8 +236,8 @@ if not df.empty:
     if selected_item:
         item = df[df['name'] == selected_item].iloc[0]
         
-        # Header with LARGER Image Integration
-        c_img, c_text, c_metric = st.columns([1.8, 3, 1.2])
+        # Header with adjusted column widths to prevent metric overflow
+        c_img, c_text, c_metric = st.columns([1.5, 2.5, 2])
         
         with c_img:
             img_code = str(item.get('code', '')).strip()
