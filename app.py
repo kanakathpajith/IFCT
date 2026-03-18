@@ -29,10 +29,12 @@ if "Dark" in theme_choice:
         --accent-color: #E6C27A;
         --border-color: rgba(45, 49, 58, 0.8);
         --chart-grid: #2D313A;
+        --table-header: rgba(255, 255, 255, 0.05);
     """
     chart_font = '#A0AEC0'
     chart_grid = '#2D313A'
     chart_bg = 'rgba(0,0,0,0)'
+    tooltip_bg = '#1A1D24'
 else:
     theme_css = """
         --bg-gradient: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
@@ -43,10 +45,12 @@ else:
         --accent-color: #B45309;
         --border-color: rgba(226, 232, 240, 0.8);
         --chart-grid: #E2E8F0;
+        --table-header: rgba(0, 0, 0, 0.04);
     """
     chart_font = '#475569'
     chart_grid = '#E2E8F0'
     chart_bg = 'rgba(0,0,0,0)'
+    tooltip_bg = '#FFFFFF'
 
 # Inject Dynamic CSS
 st.markdown(f"""
@@ -63,13 +67,14 @@ st.markdown(f"""
     h1, h2, h3, h4, p, span {{ color: var(--text-primary) !important; }}
     h1, h2, h3, h4 {{ color: var(--accent-color) !important; font-weight: 600 !important; letter-spacing: 0.5px; }}
     
+    /* Fixed Metric Overflow */
     div[data-testid="stMetric"] {{ 
         background: var(--card-bg) !important; 
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border: 1px solid var(--border-color); 
         border-radius: 12px; 
-        padding: 16px 20px;
+        padding: 14px 16px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
         overflow: hidden;
@@ -77,18 +82,19 @@ st.markdown(f"""
     div[data-testid="stMetric"]:hover {{ transform: translateY(-3px); border-color: var(--accent-color); }}
     div[data-testid="stMetricLabel"] {{ 
         color: var(--text-muted) !important; 
-        font-size: 0.9rem; 
+        font-size: 0.85rem; 
         font-weight: 500; 
         margin-bottom: 4px; 
         white-space: normal; 
-        overflow-wrap: break-word; 
+        word-wrap: break-word;
     }}
     div[data-testid="stMetricValue"] {{ 
         color: var(--text-primary) !important; 
-        font-size: 1.4rem; 
+        font-size: 1.25rem; 
         font-weight: 700; 
+        line-height: 1.3;
         white-space: normal; 
-        overflow-wrap: break-word; 
+        word-wrap: break-word;
     }}
     
     /* Image Styling */
@@ -96,6 +102,36 @@ st.markdown(f"""
         border-radius: 12px;
         border: 1px solid var(--border-color);
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        max-width: 100%;
+        object-fit: cover;
+    }}
+    
+    /* Custom HTML Table Theme Override */
+    .custom-table table {{
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        background: var(--card-bg);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+    }}
+    .custom-table th {{
+        background: var(--table-header);
+        color: var(--text-muted);
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+    }}
+    .custom-table td {{
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border-color);
+    }}
+    .custom-table tr:last-child td {{
+        border-bottom: none;
     }}
     
     .stTabs [data-baseweb="tab-list"] {{ gap: 8px; background-color: transparent; padding-bottom: 5px; flex-wrap: wrap; }}
@@ -141,16 +177,18 @@ df = load_data()
 def format_val(item, col, unit=""):
     val = item.get(col, 0)
     err = item.get(f"{col}_e", 0)
-    
     if isinstance(val, float): val = round(val, 2)
     if isinstance(err, float): err = round(err, 2)
-    
     val_str = f"{int(val)}" if val == int(val) else f"{val}"
     err_str = f"{int(err)}" if err == int(err) else f"{err}"
-    
     if err and float(err) != 0:
         return f"{val_str} ± {err_str} {unit}".strip()
     return f"{val_str} {unit}".strip()
+
+def render_table(dataframe):
+    """Renders a pandas dataframe as a custom HTML table to perfectly match themes."""
+    html = dataframe.to_html(index=False, escape=False, border=0)
+    st.markdown(f'<div class="custom-table">{html}</div>', unsafe_allow_html=True)
 
 def plot_radar(values, labels, title, color):
     fig = go.Figure()
@@ -164,7 +202,8 @@ def plot_radar(values, labels, title, color):
         polar=dict(radialaxis=dict(visible=True, showticklabels=False, gridcolor=chart_grid, linecolor=chart_grid),
                    angularaxis=dict(gridcolor=chart_grid, linecolor=chart_grid)),
         paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, font=dict(color=chart_font, size=12),
-        showlegend=False, margin=dict(t=50, b=50, l=50, r=50)
+        showlegend=False, margin=dict(t=50, b=50, l=50, r=50),
+        hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font, bordercolor=chart_grid)
     )
     return fig
 
@@ -193,8 +232,8 @@ if not df.empty:
     if selected_item:
         item = df[df['name'] == selected_item].iloc[0]
         
-        # Header with Image Integration
-        c_img, c_text, c_metric = st.columns([1, 3, 1])
+        # Header with LARGER Image Integration
+        c_img, c_text, c_metric = st.columns([1.8, 3, 1.2])
         
         with c_img:
             img_code = str(item.get('code', '')).strip()
@@ -209,12 +248,11 @@ if not df.empty:
             elif os.path.exists(jpeg_path):
                 st.image(jpeg_path, use_container_width=True)
             else:
-                # Beautiful Placeholder for missing images
                 st.markdown(f"""
-                <div style='height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+                <div style='height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; 
                             background: var(--card-bg); border-radius: 12px; border: 1px dashed var(--border-color); 
-                            color: var(--text-muted); font-size: 0.9rem;'>
-                    <span style='font-size: 1.5rem;'>📸</span>
+                            color: var(--text-muted); font-size: 1rem;'>
+                    <span style='font-size: 2rem;'>📸</span>
                     No Image
                 </div>
                 """, unsafe_allow_html=True)
@@ -229,21 +267,11 @@ if not df.empty:
         
         st.markdown("---")
 
-        # -----------------------------------------------------------------------------
-        # 5. REORDERED TABS
-        # -----------------------------------------------------------------------------
         tabs = st.tabs([
-            "🍽️ Proximate Principles", 
-            "💧 Water Soluble Vits", 
-            "🛢️ Fat Soluble Vits", 
-            "🥕 Carotenoids", 
-            "💎 Minerals & Trace Elements", 
-            "🍬 Starch & Sugars", 
-            "🥑 Fatty Acid Profile", 
-            "🧬 Amino Acid Profile", 
-            "🍋 Organic Acids", 
-            "🍇 Polyphenols", 
-            "🌱 Oligosaccharides & Others"
+            "🍽️ Proximate Principles", "💧 Water Soluble Vits", "🛢️ Fat Soluble Vits", 
+            "🥕 Carotenoids", "💎 Minerals & Trace Elements", "🍬 Starch & Sugars", 
+            "🥑 Fatty Acid Profile", "🧬 Amino Acid Profile", "🍋 Organic Acids", 
+            "🍇 Polyphenols", "🌱 Oligosaccharides & Others"
         ])
 
         # --- TAB 1: PROXIMATES & FIBRE ---
@@ -279,7 +307,7 @@ if not df.empty:
                 )
                 border_color = '#1c212c' if "Dark" in theme_choice else '#ffffff'
                 fig.update_traces(textinfo='percent+label', textfont_size=13, hoverinfo='label+percent+value', marker=dict(line=dict(color=border_color, width=2)))
-                fig.update_layout(showlegend=False, paper_bgcolor=chart_bg, font=dict(color=chart_font), margin=dict(t=30, b=30, l=30, r=30), height=350)
+                fig.update_layout(showlegend=False, paper_bgcolor=chart_bg, font=dict(color=chart_font), margin=dict(t=30, b=30, l=30, r=30), height=350, hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font))
                 st.plotly_chart(fig, use_container_width=True)
 
         # --- TAB 2: WATER SOLUBLE VITAMINS ---
@@ -303,7 +331,7 @@ if not df.empty:
                 
                 fig_b = px.bar(x=list(b_vits.keys()), y=by_vals, error_y=be_vals, text_auto='.2s')
                 fig_b.update_traces(marker_color='#68D391', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
-                fig_b.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=350, margin=dict(t=30, b=80))
+                fig_b.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=350, margin=dict(t=30, b=80), hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font))
                 st.plotly_chart(fig_b, use_container_width=True)
 
         # --- TAB 3: FAT SOLUBLE VITAMINS ---
@@ -332,7 +360,7 @@ if not df.empty:
             
             fig_vite = px.bar(x=list(vit_e_keys.keys()), y=ey_vals, error_y=ee_vals, text_auto='.2s')
             fig_vite.update_traces(marker_color='#F6E05E', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
-            fig_vite.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=400, margin=dict(t=30, b=80))
+            fig_vite.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=400, margin=dict(t=30, b=80), hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font))
             st.plotly_chart(fig_vite, use_container_width=True)
 
         # --- TAB 4: CAROTENOIDS ---
@@ -360,7 +388,7 @@ if not df.empty:
                 
                 fig_carot = px.bar(x=list(carot_keys.keys()), y=cy_vals, error_y=ce_vals, text_auto='.2s')
                 fig_carot.update_traces(marker_color='#ED8936', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
-                fig_carot.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="µg", font=dict(color=chart_font), height=450, margin=dict(t=30, b=80))
+                fig_carot.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="µg", font=dict(color=chart_font), height=450, margin=dict(t=30, b=80), hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font))
                 st.plotly_chart(fig_carot, use_container_width=True)
 
         # --- TAB 5: MINERALS & TRACE ELEMENTS ---
@@ -375,7 +403,7 @@ if not df.empty:
                 
                 fig_macro = px.bar(x=list(mins_keys.keys()), y=y_vals, error_y=e_vals, text_auto='.2s')
                 fig_macro.update_traces(marker_color='#E6C27A' if "Dark" in theme_choice else '#B45309', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
-                fig_macro.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), margin=dict(t=30, b=50))
+                fig_macro.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), margin=dict(t=30, b=50), hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font))
                 st.plotly_chart(fig_macro, use_container_width=True)
                 
                 st.markdown("#### Heavy & Other Metals")
@@ -385,7 +413,7 @@ if not df.empty:
                 
                 fig_heavy = px.bar(x=list(heavy_keys.keys()), y=hy_vals, error_y=he_vals, text_auto='.2s')
                 fig_heavy.update_traces(marker_color='#718096', textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
-                fig_heavy.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font), margin=dict(t=30, b=50))
+                fig_heavy.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font), margin=dict(t=30, b=50), hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font))
                 st.plotly_chart(fig_heavy, use_container_width=True)
             
             with c2:
@@ -400,7 +428,7 @@ if not df.empty:
                 
                 fig_trace = px.bar(x=list(trace_keys.keys()), y=ty_vals, error_y=te_vals, text_auto='.2s')
                 fig_trace.update_traces(marker_color='#4299E1', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
-                fig_trace.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font), height=550, margin=dict(t=30, b=80))
+                fig_trace.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="Amount", font=dict(color=chart_font), height=550, margin=dict(t=30, b=80), hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font))
                 st.plotly_chart(fig_trace, use_container_width=True)
 
         # --- TAB 6: STARCH & SUGARS ---
@@ -424,7 +452,7 @@ if not df.empty:
                 
                 fig_sugars = px.bar(x=list(sugars.keys()), y=sy_vals, error_y=se_vals, text_auto='.2s')
                 fig_sugars.update_traces(marker_color='#9F7AEA', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
-                fig_sugars.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=400, margin=dict(t=30, b=50))
+                fig_sugars.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="g", font=dict(color=chart_font), height=400, margin=dict(t=30, b=50), hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font))
                 st.plotly_chart(fig_sugars, use_container_width=True)
 
         # --- TAB 7: FATTY ACID PROFILE ---
@@ -452,7 +480,7 @@ if not df.empty:
                 st.plotly_chart(plot_radar(sfa_vals, list(sfa_keys.keys()), "SFA Profile", "#F56565"), use_container_width=True)
                 
                 sfa_data = [{"Fatty Acid": k, "Value (g)": format_val(item, v, "")} for k, v in sfa_keys.items()]
-                st.dataframe(pd.DataFrame(sfa_data), hide_index=True, use_container_width=True)
+                render_table(pd.DataFrame(sfa_data))
             
             with c_ufa:
                 st.markdown("#### Unsaturated Fatty Acids (g)")
@@ -466,7 +494,7 @@ if not df.empty:
                 st.plotly_chart(plot_radar(ufa_vals, list(ufa_keys.keys()), "UFA Profile", "#48BB78"), use_container_width=True)
                 
                 ufa_data = [{"Fatty Acid": k, "Value (g)": format_val(item, v, "")} for k, v in ufa_keys.items()]
-                st.dataframe(pd.DataFrame(ufa_data), hide_index=True, use_container_width=True)
+                render_table(pd.DataFrame(ufa_data))
 
         # --- TAB 8: AMINO ACID PROFILE ---
         with tabs[7]:
@@ -491,7 +519,7 @@ if not df.empty:
                 st.plotly_chart(plot_radar(eaa_vals, list(eaa_keys.keys()), "Essential", "#48BB78"), use_container_width=True)
                 
                 eaa_data = [{"Amino Acid": k, "Value": format_val(item, v, "")} for k, v in eaa_keys.items()]
-                st.dataframe(pd.DataFrame(eaa_data), hide_index=True, use_container_width=True)
+                render_table(pd.DataFrame(eaa_data))
 
             with c_naa:
                 st.markdown("##### Non-Essential / Conditionally Essential")
@@ -499,7 +527,7 @@ if not df.empty:
                 st.plotly_chart(plot_radar(naa_vals, list(naa_keys.keys()), "Non-Essential", "#4299E1"), use_container_width=True)
                 
                 naa_data = [{"Amino Acid": k, "Value": format_val(item, v, "")} for k, v in naa_keys.items()]
-                st.dataframe(pd.DataFrame(naa_data), hide_index=True, use_container_width=True)
+                render_table(pd.DataFrame(naa_data))
 
         # --- TAB 9: ORGANIC ACIDS ---
         with tabs[8]:
@@ -522,7 +550,7 @@ if not df.empty:
                 
                 fig_org = px.bar(x=list(org_acids.keys()), y=oy_vals, error_y=oe_vals, text_auto='.2s')
                 fig_org.update_traces(marker_color='#F56565', textfont_size=12, textangle=-45, textposition="outside", cliponaxis=False)
-                fig_org.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=450, margin=dict(t=30, b=80))
+                fig_org.update_layout(paper_bgcolor=chart_bg, plot_bgcolor=chart_bg, xaxis=dict(automargin=True), yaxis=dict(showgrid=True, gridcolor=chart_grid, automargin=True), xaxis_title="", yaxis_title="mg", font=dict(color=chart_font), height=450, margin=dict(t=30, b=80), hoverlabel=dict(bgcolor=tooltip_bg, font_color=chart_font))
                 st.plotly_chart(fig_org, use_container_width=True)
 
         # --- TAB 10: POLYPHENOLS ---
@@ -555,9 +583,9 @@ if not df.empty:
             
             c1, c2 = st.columns(2)
             with c1:
-                st.dataframe(df_poly.iloc[:len(poly_data)//2], hide_index=True, use_container_width=True)
+                render_table(df_poly.iloc[:len(poly_data)//2])
             with c2:
-                st.dataframe(df_poly.iloc[len(poly_data)//2:], hide_index=True, use_container_width=True)
+                render_table(df_poly.iloc[len(poly_data)//2:])
 
         # --- TAB 11: OLIGOSACCHARIDES & OTHERS ---
         with tabs[10]:
@@ -573,10 +601,10 @@ if not df.empty:
                 st.markdown("#### Oligosaccharides")
                 oligo_keys = {"Raffinose": 'rafs', "Stachyose": 'stas', "Verbascose": 'vers', "Ajugose": 'ajgs'}
                 oligo_data = [{"Compound": k, "Value": format_val(item, v, "")} for k, v in oligo_keys.items()]
-                st.dataframe(pd.DataFrame(oligo_data), hide_index=True, use_container_width=True)
+                render_table(pd.DataFrame(oligo_data))
 
             with c3:
                 st.markdown("#### Phytosterols")
                 phyto_keys = {"Campesterol": 'camt', "Stigmasterol": 'stgstr', "Beta-sitosterol": 'stostrb'}
                 phyto_data = [{"Compound": k, "Value": format_val(item, v, "")} for k, v in phyto_keys.items()]
-                st.dataframe(pd.DataFrame(phyto_data), hide_index=True, use_container_width=True)
+                render_table(pd.DataFrame(phyto_data))
