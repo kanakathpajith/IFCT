@@ -90,7 +90,6 @@ st.markdown(f"""
         word-wrap: break-word !important;
     }}
     
-    /* Aggressively target Streamlit's inner hidden divs to force text wrapping */
     div[data-testid="stMetricValue"], div[data-testid="stMetricValue"] > div {{ 
         color: var(--text-primary) !important; 
         font-size: 1.2rem !important; 
@@ -190,7 +189,6 @@ def format_val(item, col, unit=""):
     return f"{val_str} {unit}".strip()
 
 def render_table(dataframe):
-    """Renders a pandas dataframe as a custom HTML table to perfectly match themes."""
     html = dataframe.to_html(index=False, escape=False, border=0)
     st.markdown(f'<div class="custom-table">{html}</div>', unsafe_allow_html=True)
 
@@ -221,22 +219,37 @@ if not df.empty:
         st.caption(f"**Database Size:** {len(df)} curated items")
         st.markdown("---")
         
+        # --- NEW: SEARCH BOX ---
+        search_query = st.text_input("🔍 Search Food by Name", placeholder="e.g., Apple, Rice, Chicken...")
+        
+        # --- CATEGORY FILTER ---
         all_groups = ["All"] + sorted(list(df['Group'].unique()))
-        selected_group = st.selectbox("Filter by Category", all_groups)
+        selected_group = st.selectbox("📁 Filter by Category", all_groups)
+        
+        # --- APPLY FILTERS ---
+        filtered_df = df.copy()
         
         if selected_group != "All":
-            filtered_df = df[df['Group'] == selected_group]
-        else:
-            filtered_df = df
+            filtered_df = filtered_df[filtered_df['Group'] == selected_group]
             
-        selected_item = st.selectbox("Select Food Item", filtered_df['name'].unique())
+        if search_query:
+            # Case-insensitive search on the 'name' column
+            filtered_df = filtered_df[filtered_df['name'].str.contains(search_query, case=False, na=False)]
+            
+        # --- SELECT ITEM ---
+        if not filtered_df.empty:
+            selected_item = st.selectbox("✅ Select Food Item", filtered_df['name'].unique())
+        else:
+            st.warning("No foods match your exact search or category criteria.")
+            selected_item = None
+            
         st.markdown("---")
         st.info("📊 Values standard per **100g** edible portion.")
 
     if selected_item:
         item = df[df['name'] == selected_item].iloc[0]
         
-        # Header with adjusted column widths to prevent metric overflow
+        # Header
         c_img, c_text, c_metric = st.columns([1.5, 2.5, 2])
         
         with c_img:
